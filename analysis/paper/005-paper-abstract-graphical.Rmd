@@ -1,0 +1,16 @@
+```{r}
+# world map
+world <- rnaturalearth::ne_countries(scale = "small", returnclass = "sf") %>%
+  aggregate(st_buffer(., 0.2), # Avoid slivers
+            FUN = min,
+  do_union = TRUE
+) %>%
+  summarise()
+world1 <- rnaturalearth::ne_countries(scale = "small", returnclass = "sf")
+
+ggplot(data = world) +
+  # geom_sf(data = world1, colour = "grey50", fill = NA, size = 2) +
+  geom_sf(data = world, colour = "grey50", fill = "lightgrey") +
+  geom_sf(data = d_sites_sf, fill = "red", shape = 21, size = 3) + coord_sf(crs = "+proj=laea +y_0=0 +lon_0=-20 +lat_0=39 +ellps=WGS84 +no_defs", expand = FALSE, clip = "off") + 
+  theme_bw()
+```

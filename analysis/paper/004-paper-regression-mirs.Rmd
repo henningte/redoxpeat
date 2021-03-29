@@ -1,0 +1,2182 @@
+```{r cal-preparation-varsel, warning=TRUE, message=TRUE}
+
+# define the number of expected non-zero coefficients
+p0 <- 8
+
+# define parameters for the cross-validation variable selection
+method = "L1"
+nv_max <- 20
+nc <- 5
+ncpred <- 5
+relax <- TRUE
+intercept <- TRUE
+
+# define parameters for the selection of the model size
+stat <- "elpd"
+alpha <- 0.32
+pct <- 0
+type <- "upper"
+baseline <- "ref"
+```
+
+```{r cal-preparation-data}
+### Data preparation
+
+# bin the spectra
+d_cal <- 
+  d %>%
+  # dplyr::filter(!stringr::str_detect(site_label, "SKY I")) %>%
+  ir::ir_bin(width = 10)
+
+d_cal_derived <- 
+  d %>%
+  # dplyr::filter(!stringr::str_detect(site_label, "SKY I")) %>%
+  ir::ir_smooth(method = "sg", m = 1) %>%
+  ir::ir_bin(width = 10)
+
+## add the spectral features as numeric matrix and reformat the dependent variable
+
+# EAC, non-derived spectra
+d_cal_eac <- 
+  d_cal %>%
+  dplyr::mutate(var = 
+                  d_cal %>%
+                  ir::ir_flatten() %>%
+                  dplyr::select(-1) %>%
+                  t() %>%
+                  as.data.frame() %>%
+                  scale(center = TRUE, scale = TRUE),
+                y = quantities::drop_quantities(eac_c1),
+                y_scaled = scale(y, center = TRUE, scale = TRUE),
+                y_se = errors::errors(eac_c1)
+  ) %>%
+  dplyr::filter(!is.na(C)) %>%
+  dplyr::select(y, y_scaled, var)
+  
+
+# EAC, derived spectra
+d_cal_derived_eac <- 
+  d_cal_derived %>%
+  dplyr::mutate(var = 
+                  d_cal_derived %>%
+                  ir::ir_flatten() %>%
+                  dplyr::select(-1) %>%
+                  t() %>%
+                  as.data.frame() %>%
+                  scale(center = TRUE, scale = TRUE),
+                y = quantities::drop_quantities(eac_c1),
+                y_scaled = scale(y, center = TRUE, scale = TRUE),
+                y_se = errors::errors(eac_c1)
+  ) %>%
+  dplyr::filter(!is.na(C)) %>%
+  dplyr::select(y, y_scaled, var)
+
+# EDC, non-derived spectra
+d_cal_edc <- 
+  d_cal %>%
+  dplyr::mutate(var = 
+                  d_cal %>%
+                  ir::ir_flatten() %>%
+                  dplyr::select(-1) %>%
+                  t() %>%
+                  as.data.frame() %>%
+                  scale(center = TRUE, scale = TRUE),
+                y = quantities::drop_quantities(edc_c1),
+                y_scaled = scale(y, center = TRUE, scale = TRUE),
+                y_se = errors::errors(edc_c1)
+  ) %>%
+  dplyr::filter(!is.na(C)) %>%
+  dplyr::select(y, y_scaled, var)
+
+# EDC, derived spectra
+d_cal_derived_edc <- 
+  d_cal_derived %>%
+  dplyr::mutate(var = 
+                  d_cal_derived %>%
+                  ir::ir_flatten() %>%
+                  dplyr::select(-1) %>%
+                  t() %>%
+                  as.data.frame() %>%
+                  scale(center = TRUE, scale = TRUE),
+                y = quantities::drop_quantities(edc_c1),
+                y_scaled = scale(y, center = TRUE, scale = TRUE),
+                y_se = errors::errors(edc_c1)
+  ) %>%
+  dplyr::filter(!is.na(C)) %>%
+  dplyr::select(y, y_scaled, var)
+
+# EDC, non-derived spectra, transformed
+d_cal_hi_edc <- 
+  d_cal %>%
+  dplyr::mutate(var = 
+                  d_cal %>%
+                  ir::ir_flatten() %>%
+                  dplyr::select(-1) %>%
+                  t() %>%
+                  as.data.frame() %>%
+                  scale(center = TRUE, scale = TRUE),
+                y = quantities::drop_quantities(edc_c1/quantities::set_quantities(hi3, units = "1")),
+                y_scaled = scale(y, center = TRUE, scale = TRUE),
+                y_se = errors::errors(edc_c1/quantities::set_quantities(hi3, units = "1"))
+  ) %>%
+  dplyr::filter(!is.na(C)) %>%
+  dplyr::select(y, y_scaled, hi3, var)
+
+# EDC, derived spectra, transformed
+d_cal_hi_derived_edc <- 
+  d_cal_derived %>%
+  dplyr::mutate(var = 
+                  d_cal_derived %>%
+                  ir::ir_flatten() %>%
+                  dplyr::select(-1) %>%
+                  t() %>%
+                  as.data.frame() %>%
+                  scale(center = TRUE, scale = TRUE),
+                y = quantities::drop_quantities(edc_c1/quantities::set_quantities(hi3, units = "1")),
+                y_scaled = scale(y, center = TRUE, scale = TRUE),
+                y_se = errors::errors(edc_c1/quantities::set_quantities(hi3, units = "1"))
+  ) %>%
+  dplyr::filter(!is.na(C)) %>%
+  dplyr::select(y, y_scaled, hi3, var)
+
+# combine the data
+d_cal_tot <- 
+  list(
+    d_cal_eac = d_cal_eac,
+    d_cal_derived_eac = d_cal_derived_eac,
+    d_cal_edc = d_cal_edc,
+    d_cal_derived_edc = d_cal_derived_edc,
+    d_cal_hi_edc = d_cal_hi_edc,
+    d_cal_hi_derived_edc = d_cal_hi_derived_edc
+  )
+```
+
+
+```{r cal-ref, cache = TRUE, results='hide'}
+## Compute the reference models
+
+# plsr models
+cal_refs_plsr <- purrr::map(d_cal_tot, function(x) {
+  
+  # compute the PLSR model
+  cal_plsr <- 
+    pls::mvr(y_scaled ~ var, 
+             data = x, 
+             validation = "LOO",
+             method = "kernelpls")
+  
+  # get number of components
+  cal_plsr_nc <- pls::selectNcomp(cal_plsr, method = "onesigma")
+  if(cal_plsr_nc == 0) {
+    cal_plsr_nc <- 1 
+  }
+  
+  # get scores
+  cal_plsr_scores <- cal_plsr$scores[, seq_len(cal_plsr_nc), drop = FALSE]
+  
+  # fit the reference model
+  cal_ref_fit <- 
+    rstanarm::stan_glm(y ~ ., 
+                       data = data.frame(cal_plsr_scores, y = x$y_scaled), 
+                       prior = rstanarm::normal(scale = 2), 
+                       weights = NULL,
+                       chains = chains,
+                       iter = iter,
+                       warmup = warmup,
+                       seed = seed
+    )
+  
+  # extract reference model parameters
+  cal_draws <- as.matrix(cal_ref_fit) # posterior draws
+  cal_sigma <- cal_draws[, "sigma"] # noise std
+  cal_beta <- cal_draws[, 1 + seq_len(cal_plsr_nc)] # regression coefficients
+  cal_beta_0 <- cal_draws[, "(Intercept)"] # intercept
+  
+  # initialize the reference model in projpred
+  cal_ref_proj <- 
+    projpred::init_refmodel(z = cal_plsr_scores, 
+                            y = x$y_scaled, 
+                            family = gaussian(), 
+                            x = x$var, 
+                            predfun = function(zt) t(cal_beta %*% t(zt) + cal_beta_0), 
+                            dis = cal_sigma)
+  
+  # combine results
+  list(
+    cal_m_ref = cal_ref_proj,
+    cal_m_ref_fit = cal_ref_fit,
+    cal_plsr_nc = cal_plsr_nc
+  )
+  
+})
+
+# Bayesian regularization models
+cal_refs_br <- purrr::map(d_cal_tot, function(x) {
+  
+  # define the prior distribution
+  cal_hs <- 
+    rstanarm::hs(df = 1, 
+                 global_df = 1, 
+                 global_scale = p0/(ncol(x$var) - p0) * 1/sqrt(nrow(x)), 
+                 slab_df = 4, 
+                 slab_scale = 1)
+  
+  ## compute the reference model
+  cal_ref_fit <- 
+    rstanarm::stan_glm(y_scaled ~ var,
+                       family = gaussian(),
+                       data = x,
+                       prior = cal_hs,
+                       seed = seed,
+                       chains = chains,
+                       iter = iter,
+                       cores = chains,
+                       warmup = warmup,
+                       weights = NULL
+    )
+  
+  # combine results
+  list(
+    cal_m_ref = cal_ref_fit,
+    cal_m_ref_fit = cal_ref_fit,
+    cal_plsr_nc = NA
+  )
+  
+})
+```
+
+```{r cal-ref-validation}
+## Validate the reference models
+cal_eac_plsr_evaluations <- 
+  purrr::map(cal_refs_plsr[1:2], function(x) {
+    
+    # get parameters
+    m_pars <- 
+      x$cal_m_ref_fit$stanfit %>%
+      rstan::extract() %>%
+      as.data.frame
+    
+      ## validate the MCMC sampling
+      
+      # NUTS parameters
+      m_np <- bayesplot::nuts_params(x$cal_m_ref_fit)
+      
+      # trace plot
+      m_trace <- 
+        x$cal_m_ref_fit$stanfit %>%
+        bayesplot::mcmc_trace(
+          pars = c("(Intercept)", 
+                   paste0("Comp.", seq_len(x$cal_plsr_nc))),
+          np = m_np)
+      
+      # plot of the autocorrelation function
+      m_acf <- 
+        x$cal_m_ref_fit$stanfit %>%
+        bayesplot::mcmc_acf(
+          pars = c("(Intercept)", 
+                   paste0("Comp.", seq_len(x$cal_plsr_nc))),
+          lags = 10)
+      
+      ## predicted values
+      m_yrep <- 
+        rstanarm::posterior_predict(x$cal_m_ref_fit) %>%
+        rp_rescale(x$cal_m_ref$y) %>%
+        as.data.frame()
+      
+      ## residuals
+      m_residuals <- 
+        reg_base_eac_summary - m_yrep
+      
+      ## summarize
+      m_summary <- 
+        dplyr::bind_cols(
+          purrr::map_df(reg_base_eac_summary, function(y) {
+            tibble::tibble(
+              y_mean = mean(y),
+              y_lwr = get_lower_ci(y, prob = ci_prob),
+              y_upr = get_upper_ci(y, prob = ci_prob)
+            )
+          }),
+          purrr::map_df(m_yrep, function(y) {
+            tibble::tibble(
+              yhat_mean = mean(y),
+              yhat_lwr = get_lower_ci(y, prob = ci_prob),
+              yhat_upr = get_upper_ci(y, prob = ci_prob)
+            )
+          }),
+          purrr::map_df(m_residuals, function(y) {
+            tibble::tibble(
+              residuals_mean = mean(y),
+              residuals_lwr = get_lower_ci(y, prob = ci_prob),
+              residuals_upr = get_upper_ci(y, prob = ci_prob)
+            )
+          })
+        )
+      
+      ## measured vs predicted data
+      m_y_yhat <- 
+        ggplot(m_summary, 
+               aes(x = yhat_mean, xmin = yhat_lwr, xmax = yhat_upr,
+                   y = y_mean, ymin = y_lwr, ymax = y_upr)) +
+        geom_errorbar(width = 0, colour = "grey") +
+        geom_errorbarh(height = 0, colour = "grey") +
+        geom_point() +
+        geom_abline(intercept = 0, slope = 1) +
+        coord_fixed() +
+        scale_y_continuous(limits = range(c(m_summary$y_lwr, m_summary$y_upr))) +
+        labs(x = "Predicted", y = "Measured")
+      
+      ## posterior predictive check
+      popc_yrep <- 
+        m_yrep %>%
+        dplyr::slice(1:50) %>%
+        as.matrix()
+      
+      m_popc <- bayesplot::ppc_dens_overlay(m_summary$y_mean, popc_yrep)
+      
+      ## PSIS-LOO
+      m_loo <- loo::loo(x$cal_m_ref_fit, save_psis = TRUE)
+      
+      ## combine all
+      list(
+        m_pars = m_pars,
+        m_trace = m_trace,
+        m_acf = m_acf,
+        m_summary = m_summary,
+        m_y_yhat = m_y_yhat,
+        m_popc = m_popc,
+        m_loo = m_loo
+      )
+
+  })
+
+cal_edc_plsr_evaluations <- 
+  purrr::map(cal_refs_plsr[3:4], function(x) {
+    
+    # get parameters
+    m_pars <- 
+      x$cal_m_ref_fit$stanfit %>%
+      rstan::extract() %>%
+      as.data.frame
+  
+    ## validate the MCMC sampling
+    
+    # NUTS parameters
+    m_np <- bayesplot::nuts_params(x$cal_m_ref_fit)
+    
+    # trace plot
+    m_trace <- 
+      x$cal_m_ref_fit$stanfit %>%
+      bayesplot::mcmc_trace(
+        pars = c("(Intercept)", 
+                 paste0("Comp.", seq_len(x$cal_plsr_nc))),
+        np = m_np)
+    
+    # plot of the autocorrelation function
+    m_acf <- 
+      x$cal_m_ref_fit$stanfit %>%
+      bayesplot::mcmc_acf(
+        pars = c("(Intercept)", 
+                 paste0("Comp.", seq_len(x$cal_plsr_nc))),
+        lags = 10)
+    
+    ## predicted values
+    m_yrep <- 
+      rstanarm::posterior_predict(x$cal_m_ref_fit) %>%
+      rp_rescale(x$cal_m_ref$y) %>%
+      as.data.frame()
+    
+    ## residuals
+    m_residuals <- 
+      reg_base_edc_summary - m_yrep
+    
+    ## summarize
+    m_summary <- 
+      dplyr::bind_cols(
+        purrr::map_df(reg_base_edc_summary, function(y) {
+          tibble::tibble(
+            y_mean = mean(y),
+            y_lwr = get_lower_ci(y, prob = ci_prob),
+            y_upr = get_upper_ci(y, prob = ci_prob)
+          )
+        }),
+        purrr::map_df(m_yrep, function(y) {
+          tibble::tibble(
+            yhat_mean = mean(y),
+            yhat_lwr = get_lower_ci(y, prob = ci_prob),
+            yhat_upr = get_upper_ci(y, prob = ci_prob)
+          )
+        }),
+        purrr::map_df(m_residuals, function(y) {
+          tibble::tibble(
+            residuals_mean = mean(y),
+            residuals_lwr = get_lower_ci(y, prob = ci_prob),
+            residuals_upr = get_upper_ci(y, prob = ci_prob)
+          )
+        })
+      )
+    
+    ## measured vs predicted data
+    m_y_yhat <- 
+      ggplot(m_summary, 
+             aes(x = yhat_mean, xmin = yhat_lwr, xmax = yhat_upr,
+                 y = y_mean, ymin = y_lwr, ymax = y_upr)) +
+      geom_errorbar(width = 0, colour = "grey") +
+      geom_errorbarh(height = 0, colour = "grey") +
+      geom_point() +
+      geom_abline(intercept = 0, slope = 1) +
+      coord_fixed() +
+      scale_y_continuous(limits = range(c(m_summary$y_lwr, m_summary$y_upr))) +
+      labs(x = "Predicted", y = "Measured")
+    
+    ## posterior predictive check
+    popc_yrep <- 
+      m_yrep %>%
+      dplyr::slice(1:50) %>%
+      as.matrix()
+    
+    m_popc <- bayesplot::ppc_dens_overlay(m_summary$y_mean, popc_yrep)
+    
+    ## PSIS-LOO
+    m_loo <- loo::loo(x$cal_m_ref_fit, save_psis = TRUE)
+    
+    ## combine all
+    list(
+      m_pars = m_pars,
+      m_trace = m_trace,
+      m_acf = m_acf,
+      m_summary = m_summary,
+      m_y_yhat = m_y_yhat,
+      m_popc = m_popc,
+      m_loo = m_loo
+    )
+    
+  })
+
+cal_edc_hi_plsr_evaluations <- 
+  purrr::map(seq_along(cal_refs_plsr[5:6]), function(i) {
+    
+    x <- cal_refs_plsr[5:6][[i]]
+    
+    # get parameters
+    m_pars <- 
+      x$cal_m_ref_fit$stanfit %>%
+      rstan::extract() %>%
+      as.data.frame
+    
+    ## validate the MCMC sampling
+    
+    # NUTS parameters
+    m_np <- bayesplot::nuts_params(x$cal_m_ref_fit)
+    
+    # trace plot
+    m_trace <- 
+      x$cal_m_ref_fit$stanfit %>%
+      bayesplot::mcmc_trace(
+        pars = c("(Intercept)", 
+                 paste0("Comp.", seq_len(x$cal_plsr_nc))),
+        np = m_np)
+    
+    # plot of the autocorrelation function
+    m_acf <- 
+      x$cal_m_ref_fit$stanfit %>%
+      bayesplot::mcmc_acf(
+        pars = c("(Intercept)", 
+                 paste0("Comp.", seq_len(x$cal_plsr_nc))),
+        lags = 10)
+    
+    ## predicted values
+    m_yrep <- 
+      rstanarm::posterior_predict(x$cal_m_ref_fit) %>%
+      rp_rescale(x$cal_m_ref$y) %>%
+      `*`(d_cal_tot[5:6][[i]]$hi3) %>%
+      as.data.frame()
+    
+    ## residuals
+    m_residuals <- 
+      reg_base_edc_summary - m_yrep
+    
+    ## summarize
+    m_summary <- 
+      dplyr::bind_cols(
+        purrr::map_df(reg_base_edc_summary, function(y) {
+          tibble::tibble(
+            y_mean = mean(y),
+            y_lwr = get_lower_ci(y, prob = ci_prob),
+            y_upr = get_upper_ci(y, prob = ci_prob)
+          )
+        }),
+        purrr::map_df(m_yrep, function(y) {
+          tibble::tibble(
+            yhat_mean = mean(y),
+            yhat_lwr = get_lower_ci(y, prob = ci_prob),
+            yhat_upr = get_upper_ci(y, prob = ci_prob)
+          )
+        }),
+        purrr::map_df(m_residuals, function(y) {
+          tibble::tibble(
+            residuals_mean = mean(y),
+            residuals_lwr = get_lower_ci(y, prob = ci_prob),
+            residuals_upr = get_upper_ci(y, prob = ci_prob)
+          )
+        })
+      )
+    
+    ## measured vs predicted data
+    m_y_yhat <- 
+      ggplot(m_summary, 
+             aes(x = yhat_mean, xmin = yhat_lwr, xmax = yhat_upr,
+                 y = y_mean, ymin = y_lwr, ymax = y_upr)) +
+      geom_errorbar(width = 0, colour = "grey") +
+      geom_errorbarh(height = 0, colour = "grey") +
+      geom_point() +
+      geom_abline(intercept = 0, slope = 1) +
+      coord_fixed() +
+      scale_y_continuous(limits = range(c(m_summary$y_lwr, m_summary$y_upr))) +
+      labs(x = "Predicted", y = "Measured")
+    
+    ## posterior predictive check
+    popc_yrep <- 
+      m_yrep %>%
+      dplyr::slice(1:50) %>%
+      as.matrix()
+    
+    m_popc <- bayesplot::ppc_dens_overlay(m_summary$y_mean, popc_yrep)
+    
+    ## PSIS-LOO
+    m_loo <- loo::loo(x$cal_m_ref_fit, save_psis = TRUE)
+    
+    ## combine all
+    list(
+      m_pars = m_pars,
+      m_trace = m_trace,
+      m_acf = m_acf,
+      m_summary = m_summary,
+      m_y_yhat = m_y_yhat,
+      m_popc = m_popc,
+      m_loo = m_loo
+    )
+    
+  })
+
+# Bayesian regularization models
+cal_eac_br_evaluations <- 
+  purrr::map(cal_refs_br[1:2], function(x) {
+    
+    # get parameters
+    m_pars <- 
+      x$cal_m_ref_fit$stanfit %>%
+      rstan::extract() %>%
+      as.data.frame
+    
+    ## validate the MCMC sampling
+    
+    # NUTS parameters
+    m_np <- bayesplot::nuts_params(x$cal_m_ref_fit)
+    
+    # trace plot
+    m_trace <- 
+      x$cal_m_ref_fit$stanfit %>%
+      bayesplot::mcmc_trace(
+        pars = c("(Intercept)", 
+                 paste0("varV", 1:4)),
+        np = m_np)
+    
+    # plot of the autocorrelation function
+    m_acf <- 
+      x$cal_m_ref_fit$stanfit %>%
+      bayesplot::mcmc_acf(
+        pars = c("(Intercept)", 
+                 paste0("varV", 1:4)),
+        lags = 10)
+    
+    ## predicted values
+    m_yrep <- 
+      rstanarm::posterior_predict(x$cal_m_ref_fit) %>%
+      rp_rescale(x$cal_m_ref$y) %>%
+      as.data.frame()
+    
+    ## residuals
+    m_residuals <- 
+      reg_base_eac_summary - m_yrep
+    
+    ## summarize
+    m_summary <- 
+      dplyr::bind_cols(
+        purrr::map_df(reg_base_eac_summary, function(y) {
+          tibble::tibble(
+            y_mean = mean(y),
+            y_lwr = get_lower_ci(y, prob = ci_prob),
+            y_upr = get_upper_ci(y, prob = ci_prob)
+          )
+        }),
+        purrr::map_df(m_yrep, function(y) {
+          tibble::tibble(
+            yhat_mean = mean(y),
+            yhat_lwr = get_lower_ci(y, prob = ci_prob),
+            yhat_upr = get_upper_ci(y, prob = ci_prob)
+          )
+        }),
+        purrr::map_df(m_residuals, function(y) {
+          tibble::tibble(
+            residuals_mean = mean(y),
+            residuals_lwr = get_lower_ci(y, prob = ci_prob),
+            residuals_upr = get_upper_ci(y, prob = ci_prob)
+          )
+        })
+      )
+    
+    ## measured vs predicted data
+    m_y_yhat <- 
+      ggplot(m_summary, 
+             aes(x = yhat_mean, xmin = yhat_lwr, xmax = yhat_upr,
+                 y = y_mean, ymin = y_lwr, ymax = y_upr)) +
+      geom_errorbar(width = 0, colour = "grey") +
+      geom_errorbarh(height = 0, colour = "grey") +
+      geom_point() +
+      geom_abline(intercept = 0, slope = 1) +
+      coord_fixed() +
+      scale_y_continuous(limits = range(c(m_summary$y_lwr, m_summary$y_upr))) +
+      labs(x = "Predicted", y = "Measured")
+    
+    ## posterior predictive check
+    popc_yrep <- 
+      m_yrep %>%
+      dplyr::slice(1:50) %>%
+      as.matrix()
+    
+    m_popc <- bayesplot::ppc_dens_overlay(m_summary$y_mean, popc_yrep)
+    
+    ## PSIS-LOO
+    m_loo <- loo::loo(x$cal_m_ref_fit, save_psis = TRUE)
+    
+    ## combine all
+    list(
+      m_pars = m_pars,
+      m_trace = m_trace,
+      m_acf = m_acf,
+      m_summary = m_summary,
+      m_y_yhat = m_y_yhat,
+      m_popc = m_popc,
+      m_loo = m_loo
+    )
+    
+  })
+
+cal_edc_br_evaluations <- 
+  purrr::map(cal_refs_br[3:4], function(x) {
+    
+    # get parameters
+    m_pars <- 
+      x$cal_m_ref_fit$stanfit %>%
+      rstan::extract() %>%
+      as.data.frame
+    
+    ## validate the MCMC sampling
+    
+    # NUTS parameters
+    m_np <- bayesplot::nuts_params(x$cal_m_ref_fit)
+    
+    # trace plot
+    m_trace <- 
+      x$cal_m_ref_fit$stanfit %>%
+      bayesplot::mcmc_trace(
+        pars = c("(Intercept)", 
+                 paste0("varV", 1:4)),
+        np = m_np)
+    
+    # plot of the autocorrelation function
+    m_acf <- 
+      x$cal_m_ref_fit$stanfit %>%
+      bayesplot::mcmc_acf(
+        pars = c("(Intercept)", 
+                 paste0("varV", 1:4)),
+        lags = 10)
+    
+    ## predicted values
+    m_yrep <- 
+      rstanarm::posterior_predict(x$cal_m_ref_fit) %>%
+      rp_rescale(x$cal_m_ref$y) %>%
+      as.data.frame()
+    
+    ## residuals
+    m_residuals <- 
+      reg_base_edc_summary - m_yrep
+    
+    ## summarize
+    m_summary <- 
+      dplyr::bind_cols(
+        purrr::map_df(reg_base_edc_summary, function(y) {
+          tibble::tibble(
+            y_mean = mean(y),
+            y_lwr = get_lower_ci(y, prob = ci_prob),
+            y_upr = get_upper_ci(y, prob = ci_prob)
+          )
+        }),
+        purrr::map_df(m_yrep, function(y) {
+          tibble::tibble(
+            yhat_mean = mean(y),
+            yhat_lwr = get_lower_ci(y, prob = ci_prob),
+            yhat_upr = get_upper_ci(y, prob = ci_prob)
+          )
+        }),
+        purrr::map_df(m_residuals, function(y) {
+          tibble::tibble(
+            residuals_mean = mean(y),
+            residuals_lwr = get_lower_ci(y, prob = ci_prob),
+            residuals_upr = get_upper_ci(y, prob = ci_prob)
+          )
+        })
+      )
+    
+    ## measured vs predicted data
+    m_y_yhat <- 
+      ggplot(m_summary, 
+             aes(x = yhat_mean, xmin = yhat_lwr, xmax = yhat_upr,
+                 y = y_mean, ymin = y_lwr, ymax = y_upr)) +
+      geom_errorbar(width = 0, colour = "grey") +
+      geom_errorbarh(height = 0, colour = "grey") +
+      geom_point() +
+      geom_abline(intercept = 0, slope = 1) +
+      coord_fixed() +
+      scale_y_continuous(limits = range(c(m_summary$y_lwr, m_summary$y_upr))) +
+      labs(x = "Predicted", y = "Measured")
+    
+    ## posterior predictive check
+    popc_yrep <- 
+      m_yrep %>%
+      dplyr::slice(1:50) %>%
+      as.matrix()
+    
+    m_popc <- bayesplot::ppc_dens_overlay(m_summary$y_mean, popc_yrep)
+    
+    ## PSIS-LOO
+    m_loo <- loo::loo(x$cal_m_ref_fit, save_psis = TRUE)
+    
+    ## combine all
+    list(
+      m_pars = m_pars,
+      m_trace = m_trace,
+      m_acf = m_acf,
+      m_summary = m_summary,
+      m_y_yhat = m_y_yhat,
+      m_popc = m_popc,
+      m_loo = m_loo
+    )
+    
+  })
+
+cal_edc_hi_br_evaluations <- 
+  purrr::map(seq_along(cal_refs_br[5:6]), function(i) {
+    
+    x <- cal_refs_br[5:6][[i]]
+    
+    # get parameters
+    m_pars <- 
+      x$cal_m_ref_fit$stanfit %>%
+      rstan::extract() %>%
+      as.data.frame
+    
+    ## validate the MCMC sampling
+    
+    # NUTS parameters
+    m_np <- bayesplot::nuts_params(x$cal_m_ref_fit)
+    
+    # trace plot
+    m_trace <- 
+      x$cal_m_ref_fit$stanfit %>%
+      bayesplot::mcmc_trace(
+        pars = c("(Intercept)", 
+                 paste0("varV", 1:4)),
+        np = m_np)
+    
+    # plot of the autocorrelation function
+    m_acf <- 
+      x$cal_m_ref_fit$stanfit %>%
+      bayesplot::mcmc_acf(
+        pars = c("(Intercept)", 
+                 paste0("varV", 1:4)),
+        lags = 10)
+    
+    ## predicted values
+    m_yrep <- 
+      rstanarm::posterior_predict(x$cal_m_ref_fit) %>%
+      rp_rescale(x$cal_m_ref$y) %>%
+      `*`(d_cal_tot[5:6][[i]]$hi3) %>%
+      as.data.frame()
+    
+    ## residuals
+    m_residuals <- 
+      reg_base_edc_summary - m_yrep
+    
+    ## summarize
+    m_summary <- 
+      dplyr::bind_cols(
+        purrr::map_df(reg_base_edc_summary, function(y) {
+          tibble::tibble(
+            y_mean = mean(y),
+            y_lwr = get_lower_ci(y, prob = ci_prob),
+            y_upr = get_upper_ci(y, prob = ci_prob)
+          )
+        }),
+        purrr::map_df(m_yrep, function(y) {
+          tibble::tibble(
+            yhat_mean = mean(y),
+            yhat_lwr = get_lower_ci(y, prob = ci_prob),
+            yhat_upr = get_upper_ci(y, prob = ci_prob)
+          )
+        }),
+        purrr::map_df(m_residuals, function(y) {
+          tibble::tibble(
+            residuals_mean = mean(y),
+            residuals_lwr = get_lower_ci(y, prob = ci_prob),
+            residuals_upr = get_upper_ci(y, prob = ci_prob)
+          )
+        })
+      )
+    
+    ## measured vs predicted data
+    m_y_yhat <- 
+      ggplot(m_summary, 
+             aes(x = yhat_mean, xmin = yhat_lwr, xmax = yhat_upr,
+                 y = y_mean, ymin = y_lwr, ymax = y_upr)) +
+      geom_errorbar(width = 0, colour = "grey") +
+      geom_errorbarh(height = 0, colour = "grey") +
+      geom_point() +
+      geom_abline(intercept = 0, slope = 1) +
+      coord_fixed() +
+      scale_y_continuous(limits = range(c(m_summary$y_lwr, m_summary$y_upr))) +
+      labs(x = "Predicted", y = "Measured")
+    
+    ## posterior predictive check
+    popc_yrep <- 
+      m_yrep %>%
+      dplyr::slice(1:50) %>%
+      as.matrix()
+    
+    m_popc <- bayesplot::ppc_dens_overlay(m_summary$y_mean, popc_yrep)
+    
+    ## PSIS-LOO
+    m_loo <- loo::loo(x$cal_m_ref_fit, save_psis = TRUE)
+    
+    ## combine all
+    list(
+      m_pars = m_pars,
+      m_trace = m_trace,
+      m_acf = m_acf,
+      m_summary = m_summary,
+      m_y_yhat = m_y_yhat,
+      m_popc = m_popc,
+      m_loo = m_loo
+    )
+    
+  })
+
+# combine all
+cal_ref_evaluations <- 
+  c(
+    cal_eac_plsr_evaluations,
+    cal_edc_plsr_evaluations,
+    cal_edc_hi_plsr_evaluations,
+    cal_eac_br_evaluations,
+    cal_edc_br_evaluations,
+    cal_edc_hi_br_evaluations
+  )
+```
+
+```{r cal-projection}
+## Project the reference models
+
+# PLSR-based models
+cal_plsr_proj <- 
+  purrr::map(cal_refs_plsr, function(x) {
+    
+    # perform variable selection
+    cal_vs <- 
+      x$cal_m_ref %>%
+      projpred::cv_varsel(method = method,
+                          nv_max = 60,
+                          nc = nc,
+                          ncpred = ncpred,
+                          relax = relax,
+                          intercept = intercept,
+                          seed = seed)
+    
+    # variable selection plot
+    cal_vs_plot <- 
+      cal_vs %>%
+      projpred::varsel_plot(alpha = alpha, 
+                            deltas = TRUE, 
+                            stats = c("elpd", "rmse"))
+    
+    # get the suggested model size
+    cal_vs_ss <- 
+      cal_vs %>%
+      projpred::suggest_size(stat = "elpd", 
+                             alpha = alpha)
+    
+    # get the projected model
+    cal_proj <- 
+      cal_vs %>%
+      projpred::project(nv = cal_vs_ss, 
+                        ns = 6000)
+    
+    # collect information on the selected variables
+    cal_vs_interpretation <- 
+      tibble::tibble(
+        vind = cal_vs$vind[seq_len(cal_vs_ss)],
+        wavenumber = d_cal$spectra[[1]]$x[cal_vs$vind[seq_len(cal_vs_ss)]],
+        beta_mean = apply(cal_proj$beta, 1, mean),
+        beta_lwr = apply(cal_proj$beta, 1, get_lower_ci, prob = ci_prob),
+        beta_upr = apply(cal_proj$beta, 1, get_upper_ci, prob = ci_prob)
+      )
+    
+    # plot of selected variables
+    cal_vs_spectra_plot <- 
+      plot(d[1, ]) + 
+      geom_vline(xintercept = d_cal$spectra[[1]]$x[cal_vs$vind[seq_len(cal_vs_ss)]], 
+                 colour = ifelse(apply(cal_proj$beta, 1, mean) > 0, "red", "blue")) +
+      theme(axis.text.y = element_blank(),
+            axis.ticks.y = element_blank()) +
+      labs(x = expression("Wavenumber ["*cm^{-1}*"]"),
+           y = "Intensity")
+    
+    # combine all data
+    list(
+      cal_vs = cal_vs,
+      cal_vs_plot = cal_vs_plot,
+      cal_vs_ss = cal_vs_ss,
+      cal_proj = cal_proj,
+      cal_vs_interpretation = cal_vs_interpretation,
+      cal_vs_spectra_plot = cal_vs_spectra_plot
+    )
+    
+  })
+
+# Bayesian regularization-based models
+cal_br_proj <- 
+  purrr::map(cal_refs_br, function(x) {
+    
+    # perform variable selection
+    cal_vs <- 
+      x$cal_m_ref_fit %>%
+      projpred::cv_varsel(method = method,
+                          nv_max = nv_max,
+                          nc = nc,
+                          ncpred = ncpred,
+                          relax = relax,
+                          intercept = intercept,
+                          seed = seed)
+    
+    # variable selection plot
+    cal_vs_plot <- 
+      cal_vs %>%
+      projpred::varsel_plot(alpha = alpha, 
+                            deltas = TRUE, 
+                            stats = c("elpd", "rmse"))
+    
+    # get the suggested model size
+    cal_vs_ss <- 
+      cal_vs %>%
+      projpred::suggest_size(stat = "elpd", 
+                             alpha = alpha)
+    
+    # get the projected model
+    cal_proj <- 
+      cal_vs %>%
+      projpred::project(nv = cal_vs_ss, 
+                        ns = 6000)
+    
+    # collect information on the selected variables
+    cal_vs_interpretation <- 
+      tibble::tibble(
+        vind = cal_vs$vind[seq_len(cal_vs_ss)],
+        wavenumber = d_cal$spectra[[1]]$x[cal_vs$vind[seq_len(cal_vs_ss)]],
+        beta_mean = apply(cal_proj$beta, 1, mean),
+        beta_lwr = apply(cal_proj$beta, 1, get_lower_ci, prob = ci_prob),
+        beta_upr = apply(cal_proj$beta, 1, get_upper_ci, prob = ci_prob)
+      )
+    
+    # plot of selected variables
+    cal_vs_spectra_plot <- 
+      plot(d[1, ]) + 
+      geom_vline(xintercept = d_cal$spectra[[1]]$x[cal_vs$vind[seq_len(cal_vs_ss)]], 
+                 colour = ifelse(apply(cal_proj$beta, 1, mean) > 0, "red", "blue")) +
+      theme(axis.text.y = element_blank(),
+            axis.ticks.y = element_blank()) +
+      labs(x = expression("Wavenumber ["*cm^{-1}*"]"),
+           y = "Intensity")
+    
+    # combine all data
+    list(
+      cal_vs = cal_vs,
+      cal_vs_plot = cal_vs_plot,
+      cal_vs_ss = cal_vs_ss,
+      cal_proj = cal_proj,
+      cal_vs_interpretation = cal_vs_interpretation,
+      cal_vs_spectra_plot = cal_vs_spectra_plot
+    )
+    
+  })
+```
+
+
+```{r cal-fe-preparation-data}
+### Data preparation
+
+# bind the spectra
+d_cal <- 
+  d %>%
+  ir::ir_bin(width = 10)
+
+d_cal_derived <- 
+  d %>%
+  ir::ir_smooth(method = "sg", m = 1) %>%
+  ir::ir_bin(width = 10)
+
+# EAC, non-derived spectra
+d_cal_eac_fe <- 
+  d_cal %>%
+  dplyr::filter(index_eac) %>%
+  dplyr::mutate(var = 
+                  d_cal %>%
+                  dplyr::filter(index_eac) %>%
+                  ir::ir_flatten() %>%
+                  dplyr::select(-1) %>%
+                  t() %>%
+                  as.data.frame() %>%
+                  scale(center = TRUE, scale = TRUE),
+                y = quantities::drop_quantities(eac_c1),
+                y_scaled = scale(y, center = TRUE, scale = TRUE),
+                y_se = errors::errors(eac_c1)
+  ) %>%
+  dplyr::filter(!is.na(C)) %>%
+  dplyr::select(y, y_scaled, var)
+
+# EAC, derived spectra
+d_cal_derived_eac_fe <- 
+  d_cal_derived %>%
+  dplyr::filter(index_eac) %>%
+  dplyr::mutate(var = 
+                  d_cal_derived %>%
+                  dplyr::filter(index_eac) %>%
+                  ir::ir_flatten() %>%
+                  dplyr::select(-1) %>%
+                  t() %>%
+                  as.data.frame() %>%
+                  scale(center = TRUE, scale = TRUE),
+                y = quantities::drop_quantities(eac_c1),
+                y_scaled = scale(y, center = TRUE, scale = TRUE),
+                y_se = errors::errors(eac_c1)
+  ) %>%
+  dplyr::filter(!is.na(C)) %>%
+  dplyr::select(y, y_scaled, var)
+
+# EDC, non-derived spectra
+d_cal_edc_fe <- 
+  d_cal %>%
+  dplyr::filter(index_edc) %>%
+  dplyr::mutate(var = 
+                  d_cal %>%
+                  dplyr::filter(index_edc) %>%
+                  ir::ir_flatten() %>%
+                  dplyr::select(-1) %>%
+                  t() %>%
+                  as.data.frame() %>%
+                  scale(center = TRUE, scale = TRUE),
+                y = quantities::drop_quantities(edc_c1),
+                y_scaled = scale(y, center = TRUE, scale = TRUE),
+                y_se = errors::errors(edc_c1)
+  ) %>%
+  dplyr::filter(!is.na(C)) %>%
+  dplyr::select(y, y_scaled, var)
+
+# EDC, non-derived spectra, transformed
+d_cal_hi_edc_fe <- 
+  d_cal %>%
+  dplyr::filter(index_edc) %>%
+  dplyr::mutate(var = 
+                  d_cal %>%
+                  dplyr::filter(index_edc) %>%
+                  ir::ir_flatten() %>%
+                  dplyr::select(-1) %>%
+                  t() %>%
+                  as.data.frame() %>%
+                  scale(center = TRUE, scale = TRUE),
+                y = quantities::drop_quantities(edc_c1/quantities::set_quantities(hi3, units = "1")),
+                y_scaled = scale(y, center = TRUE, scale = TRUE),
+                y_se = errors::errors(edc_c1/quantities::set_quantities(hi3, units = "1"))
+  ) %>%
+  dplyr::filter(!is.na(C)) %>%
+  dplyr::select(y, y_scaled, hi3, var)
+
+# EDC, derived spectra
+d_cal_derived_edc_fe <- 
+  d_cal_derived %>%
+  dplyr::filter(index_edc) %>%
+  dplyr::mutate(var = 
+                  d_cal_derived %>%
+                  dplyr::filter(index_edc) %>%
+                  ir::ir_flatten() %>%
+                  dplyr::select(-1) %>%
+                  t() %>%
+                  as.data.frame() %>%
+                  scale(center = TRUE, scale = TRUE),
+                y = quantities::drop_quantities(edc_c1),
+                y_scaled = scale(y, center = TRUE, scale = TRUE),
+                y_se = errors::errors(edc_c1)
+    ) %>%
+    dplyr::filter(!is.na(C)) %>%
+    dplyr::select(y, y_scaled, var)
+
+# EDC, derived spectra, transformed
+d_cal_hi_derived_edc_fe <- 
+  d_cal_derived %>%
+  dplyr::filter(index_edc) %>%
+  dplyr::mutate(var = 
+                  d_cal_derived %>%
+                  dplyr::filter(index_edc) %>%
+                  ir::ir_flatten() %>%
+                  dplyr::select(-1) %>%
+                  t() %>%
+                  as.data.frame() %>%
+                  scale(center = TRUE, scale = TRUE),
+                  y = quantities::drop_quantities(edc_c1/quantities::set_quantities(hi3, units = "1")),
+                  y_scaled = scale(y, center = TRUE, scale = TRUE),
+                  y_se = errors::errors(edc_c1/quantities::set_quantities(hi3, units = "1"))
+    ) %>%
+    dplyr::filter(!is.na(C)) %>%
+    dplyr::select(y, y_scaled, hi3, var)
+
+# combine the data
+d_cal_tot_fe <- 
+  list(
+    d_cal_eac_fe = d_cal_eac_fe,
+    d_cal_derived_eac_fe = d_cal_derived_eac_fe,
+    d_cal_edc_fe = d_cal_edc_fe,
+    d_cal_derived_edc_fe = d_cal_derived_edc_fe,
+    d_cal_hi_edc_fe = d_cal_hi_edc_fe,
+    d_cal_hi_derived_edc_fe = d_cal_hi_derived_edc_fe
+  )
+```
+
+```{r cal-fe-ref, cache = TRUE, results='hide'}
+## Compute the reference models
+
+# plsr models
+cal_refs_plsr_fe <- purrr::map(d_cal_tot_fe, function(x) {
+  
+  # compute the PLSR model
+  cal_plsr <- 
+    pls::mvr(y_scaled ~ var, 
+             data = x, 
+             validation = "LOO",
+             method = "kernelpls")
+  
+  # get number of components
+  cal_plsr_nc <- pls::selectNcomp(cal_plsr, method = "onesigma")
+  if(cal_plsr_nc == 0) {
+    cal_plsr_nc <- 1 
+  }
+  
+  # get scores
+  cal_plsr_scores <- cal_plsr$scores[, seq_len(cal_plsr_nc), drop = FALSE]
+  
+  # fit the reference model
+  cal_ref_fit <- 
+    rstanarm::stan_glm(y ~ ., 
+                       data = data.frame(cal_plsr_scores, y = x$y_scaled), 
+                       prior = rstanarm::normal(scale = 2), 
+                       weights = NULL,
+                       chains = chains,
+                       iter = iter,
+                       warmup = warmup,
+                       seed = seed
+    )
+  
+  # extract reference model parameters
+  cal_draws <- as.matrix(cal_ref_fit) # posterior draws
+  cal_sigma <- cal_draws[, "sigma"] # noise std
+  cal_beta <- cal_draws[, 1 + seq_len(cal_plsr_nc)] # regression coefficients
+  cal_beta_0 <- cal_draws[, "(Intercept)"] # intercept
+  
+  # initialize the reference model in projpred
+  cal_ref_proj <- 
+    projpred::init_refmodel(z = cal_plsr_scores, 
+                            y = x$y_scaled, 
+                            family = gaussian(), 
+                            x = x$var, 
+                            predfun = function(zt) t(cal_beta %*% t(zt) + cal_beta_0), 
+                            dis = cal_sigma)
+  
+  # combine results
+  list(
+    cal_m_ref = cal_ref_proj,
+    cal_m_ref_fit = cal_ref_fit,
+    cal_plsr_nc = cal_plsr_nc
+  )
+  
+})
+
+# Bayesian regularization models
+cal_refs_br_fe <- purrr::map(d_cal_tot_fe, function(x) {
+  
+  # define the prior distribution
+  cal_hs <- 
+    rstanarm::hs(df = 1, 
+                 global_df = 1, 
+                 global_scale = p0/(ncol(x$var) - p0) * 1/sqrt(nrow(x)), 
+                 slab_df = 4, 
+                 slab_scale = 1)
+  
+  ## compute the reference model
+  cal_ref_fit <- 
+    rstanarm::stan_glm(y_scaled ~ var,
+                       family = gaussian(),
+                       data = x,
+                       prior = cal_hs,
+                       seed = seed,
+                       chains = chains,
+                       iter = iter,
+                       cores = chains,
+                       warmup = warmup,
+                       weights = NULL
+    )
+  
+  # combine results
+  list(
+    cal_m_ref = cal_ref_fit,
+    cal_m_ref_fit = cal_ref_fit,
+    cal_plsr_nc = NA
+  )
+  
+})
+```
+
+```{r cal-fe-ref-validation}
+## Validate the reference models
+cal_eac_plsr_evaluations_fe <- 
+  purrr::map(cal_refs_plsr_fe[1:2], function(x) {
+    
+    # get parameters
+    m_pars <- 
+      x$cal_m_ref_fit$stanfit %>%
+      rstan::extract() %>%
+      as.data.frame
+    
+      ## validate the MCMC sampling
+      
+      # NUTS parameters
+      m_np <- bayesplot::nuts_params(x$cal_m_ref_fit)
+      
+      # trace plot
+      m_trace <- 
+        x$cal_m_ref_fit$stanfit %>%
+        bayesplot::mcmc_trace(
+          pars = c("(Intercept)", 
+                   paste0("Comp.", seq_len(x$cal_plsr_nc))),
+          np = m_np)
+      
+      # plot of the autocorrelation function
+      m_acf <- 
+        x$cal_m_ref_fit$stanfit %>%
+        bayesplot::mcmc_acf(
+          pars = c("(Intercept)", 
+                   paste0("Comp.", seq_len(x$cal_plsr_nc))),
+          lags = 10)
+      
+      ## predicted values
+      m_yrep <- 
+        rstanarm::posterior_predict(x$cal_m_ref_fit) %>%
+        rp_rescale(x$cal_m_ref$y) %>%
+        as.data.frame()
+      
+      ## residuals
+      m_residuals <- 
+        reg_base_eac_summary[, d$index_eac[!is.na(d$C)]] - m_yrep
+      
+      ## summarize
+      m_summary <- 
+        dplyr::bind_cols(
+          purrr::map_df(reg_base_eac_summary[, d$index_eac[!is.na(d$C)]], function(y) {
+            tibble::tibble(
+              y_mean = mean(y),
+              y_lwr = get_lower_ci(y, prob = ci_prob),
+              y_upr = get_upper_ci(y, prob = ci_prob)
+            )
+          }),
+          purrr::map_df(m_yrep, function(y) {
+            tibble::tibble(
+              yhat_mean = mean(y),
+              yhat_lwr = get_lower_ci(y, prob = ci_prob),
+              yhat_upr = get_upper_ci(y, prob = ci_prob)
+            )
+          }),
+          purrr::map_df(m_residuals, function(y) {
+            tibble::tibble(
+              residuals_mean = mean(y),
+              residuals_lwr = get_lower_ci(y, prob = ci_prob),
+              residuals_upr = get_upper_ci(y, prob = ci_prob)
+            )
+          })
+        )
+      
+      ## measured vs predicted data
+      m_y_yhat <- 
+        ggplot(m_summary, 
+               aes(x = yhat_mean, xmin = yhat_lwr, xmax = yhat_upr,
+                   y = y_mean, ymin = y_lwr, ymax = y_upr)) +
+        geom_errorbar(width = 0, colour = "grey") +
+        geom_errorbarh(height = 0, colour = "grey") +
+        geom_point() +
+        geom_abline(intercept = 0, slope = 1) +
+        coord_fixed() +
+        scale_y_continuous(limits = range(c(m_summary$y_lwr, m_summary$y_upr))) +
+        labs(x = "Predicted", y = "Measured")
+      
+      ## posterior predictive check
+      popc_yrep <- 
+        m_yrep %>%
+        dplyr::slice(1:50) %>%
+        as.matrix()
+      
+      m_popc <- bayesplot::ppc_dens_overlay(m_summary$y_mean, popc_yrep)
+      
+      ## PSIS-LOO
+      m_loo <- loo::loo(x$cal_m_ref_fit, save_psis = TRUE)
+      
+      ## combine all
+      list(
+        m_pars = m_pars,
+        m_trace = m_trace,
+        m_acf = m_acf,
+        m_summary = m_summary,
+        m_y_yhat = m_y_yhat,
+        m_popc = m_popc,
+        m_loo = m_loo
+      )
+    
+  })
+
+cal_edc_plsr_evaluations_fe <- 
+  purrr::map(cal_refs_plsr_fe[3:4], function(x) {
+    
+    # get parameters
+    m_pars <- 
+      x$cal_m_ref_fit$stanfit %>%
+      rstan::extract() %>%
+      as.data.frame
+    
+       ## validate the MCMC sampling
+    
+    # NUTS parameters
+    m_np <- bayesplot::nuts_params(x$cal_m_ref_fit)
+    
+    # trace plot
+    m_trace <- 
+      x$cal_m_ref_fit$stanfit %>%
+      bayesplot::mcmc_trace(
+        pars = c("(Intercept)", 
+                 paste0("Comp.", seq_len(x$cal_plsr_nc))),
+        np = m_np)
+    
+    # plot of the autocorrelation function
+    m_acf <- 
+      x$cal_m_ref_fit$stanfit %>%
+      bayesplot::mcmc_acf(
+        pars = c("(Intercept)", 
+                 paste0("Comp.", seq_len(x$cal_plsr_nc))),
+        lags = 10)
+    
+    ## predicted values
+    m_yrep <- 
+      rstanarm::posterior_predict(x$cal_m_ref_fit) %>%
+      rp_rescale(x$cal_m_ref$y) %>%
+      as.data.frame()
+    
+    ## residuals
+    m_residuals <- 
+      reg_base_edc_summary[, d$index_edc[!is.na(d$C)]] - m_yrep
+    
+    ## summarize
+    m_summary <- 
+      dplyr::bind_cols(
+        purrr::map_df(reg_base_edc_summary[, d$index_edc[!is.na(d$C)]], function(y) {
+          tibble::tibble(
+            y_mean = mean(y),
+            y_lwr = get_lower_ci(y, prob = ci_prob),
+            y_upr = get_upper_ci(y, prob = ci_prob)
+          )
+        }),
+        purrr::map_df(m_yrep, function(y) {
+          tibble::tibble(
+            yhat_mean = mean(y),
+            yhat_lwr = get_lower_ci(y, prob = ci_prob),
+            yhat_upr = get_upper_ci(y, prob = ci_prob)
+          )
+        }),
+        purrr::map_df(m_residuals, function(y) {
+          tibble::tibble(
+            residuals_mean = mean(y),
+            residuals_lwr = get_lower_ci(y, prob = ci_prob),
+            residuals_upr = get_upper_ci(y, prob = ci_prob)
+          )
+        })
+      )
+    
+    ## measured vs predicted data
+    m_y_yhat <- 
+      ggplot(m_summary, 
+             aes(x = yhat_mean, xmin = yhat_lwr, xmax = yhat_upr,
+                 y = y_mean, ymin = y_lwr, ymax = y_upr)) +
+      geom_errorbar(width = 0, colour = "grey") +
+      geom_errorbarh(height = 0, colour = "grey") +
+      geom_point() +
+      geom_abline(intercept = 0, slope = 1) +
+      coord_fixed() +
+      scale_y_continuous(limits = range(c(m_summary$y_lwr, m_summary$y_upr))) +
+      labs(x = "Predicted", y = "Measured")
+    
+    ## posterior predictive check
+    popc_yrep <- 
+      m_yrep %>%
+      dplyr::slice(1:50) %>%
+      as.matrix()
+    
+    m_popc <- bayesplot::ppc_dens_overlay(m_summary$y_mean, popc_yrep)
+    
+    ## PSIS-LOO
+    m_loo <- loo::loo(x$cal_m_ref_fit, save_psis = TRUE)
+    
+    ## combine all
+    list(
+      m_pars = m_pars,
+      m_trace = m_trace,
+      m_acf = m_acf,
+      m_summary = m_summary,
+      m_y_yhat = m_y_yhat,
+      m_popc = m_popc,
+      m_loo = m_loo
+    )
+    
+  })
+
+cal_edc_hi_plsr_evaluations_fe <- 
+  purrr::map(seq_along(cal_refs_plsr_fe[5:6]), function(i) {
+    
+    x <- cal_refs_plsr_fe[5:6][[i]]
+    
+    # get parameters
+    m_pars <- 
+      x$cal_m_ref_fit$stanfit %>%
+      rstan::extract() %>%
+      as.data.frame
+    
+    ## validate the MCMC sampling
+    
+    # NUTS parameters
+    m_np <- bayesplot::nuts_params(x$cal_m_ref_fit)
+    
+    # trace plot
+    m_trace <- 
+      x$cal_m_ref_fit$stanfit %>%
+      bayesplot::mcmc_trace(
+        pars = c("(Intercept)", 
+                 paste0("Comp.", seq_len(x$cal_plsr_nc))),
+        np = m_np)
+    
+    # plot of the autocorrelation function
+    m_acf <- 
+      x$cal_m_ref_fit$stanfit %>%
+      bayesplot::mcmc_acf(
+        pars = c("(Intercept)", 
+                 paste0("Comp.", seq_len(x$cal_plsr_nc))),
+        lags = 10)
+    
+    ## predicted values
+    m_yrep <- 
+      rstanarm::posterior_predict(x$cal_m_ref_fit) %>%
+      rp_rescale(x$cal_m_ref$y) %>%
+      `*`(d_cal_tot_fe[5:6][[i]]$hi3) %>%
+      as.data.frame()
+    
+    ## residuals
+    m_residuals <- 
+      reg_base_edc_summary[, d$index_edc[!is.na(d$C)]] - m_yrep
+    
+    ## summarize
+    m_summary <- 
+      dplyr::bind_cols(
+        purrr::map_df(reg_base_edc_summary[, d$index_edc[!is.na(d$C)]], function(y) {
+          tibble::tibble(
+            y_mean = mean(y),
+            y_lwr = get_lower_ci(y, prob = ci_prob),
+            y_upr = get_upper_ci(y, prob = ci_prob)
+          )
+        }),
+        purrr::map_df(m_yrep, function(y) {
+          tibble::tibble(
+            yhat_mean = mean(y),
+            yhat_lwr = get_lower_ci(y, prob = ci_prob),
+            yhat_upr = get_upper_ci(y, prob = ci_prob)
+          )
+        }),
+        purrr::map_df(m_residuals, function(y) {
+          tibble::tibble(
+            residuals_mean = mean(y),
+            residuals_lwr = get_lower_ci(y, prob = ci_prob),
+            residuals_upr = get_upper_ci(y, prob = ci_prob)
+          )
+        })
+      )
+    
+    ## measured vs predicted data
+    m_y_yhat <- 
+      ggplot(m_summary, 
+             aes(x = yhat_mean, xmin = yhat_lwr, xmax = yhat_upr,
+                 y = y_mean, ymin = y_lwr, ymax = y_upr)) +
+      geom_errorbar(width = 0, colour = "grey") +
+      geom_errorbarh(height = 0, colour = "grey") +
+      geom_point() +
+      geom_abline(intercept = 0, slope = 1) +
+      coord_fixed() +
+      scale_y_continuous(limits = range(c(m_summary$y_lwr, m_summary$y_upr))) +
+      labs(x = "Predicted", y = "Measured")
+    
+    ## posterior predictive check
+    popc_yrep <- 
+      m_yrep %>%
+      dplyr::slice(1:50) %>%
+      as.matrix()
+    
+    m_popc <- bayesplot::ppc_dens_overlay(m_summary$y_mean, popc_yrep)
+    
+    ## PSIS-LOO
+    m_loo <- loo::loo(x$cal_m_ref_fit, save_psis = TRUE)
+    
+    ## combine all
+    list(
+      m_pars = m_pars,
+      m_trace = m_trace,
+      m_acf = m_acf,
+      m_summary = m_summary,
+      m_y_yhat = m_y_yhat,
+      m_popc = m_popc,
+      m_loo = m_loo
+    )
+    
+  })
+
+# Bayesian regularization models
+cal_eac_br_evaluations_fe <- 
+  purrr::map(cal_refs_br_fe[1:2], function(x) {
+    
+    # get parameters
+    m_pars <- 
+      x$cal_m_ref_fit$stanfit %>%
+      rstan::extract() %>%
+      as.data.frame
+    
+    ## validate the MCMC sampling
+    
+    # NUTS parameters
+    m_np <- bayesplot::nuts_params(x$cal_m_ref_fit)
+    
+    # trace plot
+    m_trace <- 
+      x$cal_m_ref_fit$stanfit %>%
+      bayesplot::mcmc_trace(
+        pars = c("(Intercept)", 
+                 paste0("varV", 1:4)),
+        np = m_np)
+    
+    # plot of the autocorrelation function
+    m_acf <- 
+      x$cal_m_ref_fit$stanfit %>%
+      bayesplot::mcmc_acf(
+        pars = c("(Intercept)", 
+                 paste0("varV", 1:4)),
+        lags = 10)
+    
+    ## predicted values
+    m_yrep <- 
+      rstanarm::posterior_predict(x$cal_m_ref_fit) %>%
+      rp_rescale(x$cal_m_ref$y) %>%
+      as.data.frame()
+    
+    ## residuals
+    m_residuals <- 
+      reg_base_eac_summary[, d$index_eac[!is.na(d$C)]] - m_yrep
+    
+    ## summarize
+    m_summary <- 
+      dplyr::bind_cols(
+        purrr::map_df(reg_base_eac_summary[, d$index_eac[!is.na(d$C)]], function(y) {
+          tibble::tibble(
+            y_mean = mean(y),
+            y_lwr = get_lower_ci(y, prob = ci_prob),
+            y_upr = get_upper_ci(y, prob = ci_prob)
+          )
+        }),
+        purrr::map_df(m_yrep, function(y) {
+          tibble::tibble(
+            yhat_mean = mean(y),
+            yhat_lwr = get_lower_ci(y, prob = ci_prob),
+            yhat_upr = get_upper_ci(y, prob = ci_prob)
+          )
+        }),
+        purrr::map_df(m_residuals, function(y) {
+          tibble::tibble(
+            residuals_mean = mean(y),
+            residuals_lwr = get_lower_ci(y, prob = ci_prob),
+            residuals_upr = get_upper_ci(y, prob = ci_prob)
+          )
+        })
+      )
+    
+    ## measured vs predicted data
+    m_y_yhat <- 
+      ggplot(m_summary, 
+             aes(x = yhat_mean, xmin = yhat_lwr, xmax = yhat_upr,
+                 y = y_mean, ymin = y_lwr, ymax = y_upr)) +
+      geom_errorbar(width = 0, colour = "grey") +
+      geom_errorbarh(height = 0, colour = "grey") +
+      geom_point() +
+      geom_abline(intercept = 0, slope = 1) +
+      coord_fixed() +
+      scale_y_continuous(limits = range(c(m_summary$y_lwr, m_summary$y_upr))) +
+      labs(x = "Predicted", y = "Measured")
+    
+    ## posterior predictive check
+    popc_yrep <- 
+      m_yrep %>%
+      dplyr::slice(1:50) %>%
+      as.matrix()
+    
+    m_popc <- bayesplot::ppc_dens_overlay(m_summary$y_mean, popc_yrep)
+    
+    ## PSIS-LOO
+    m_loo <- loo::loo(x$cal_m_ref_fit, save_psis = TRUE)
+    
+    ## combine all
+    list(
+      m_pars = m_pars,
+      m_trace = m_trace,
+      m_acf = m_acf,
+      m_summary = m_summary,
+      m_y_yhat = m_y_yhat,
+      m_popc = m_popc,
+      m_loo = m_loo
+    )
+    
+  })
+
+cal_edc_br_evaluations_fe <- 
+  purrr::map(cal_refs_br_fe[3:4], function(x) {
+    
+    # get parameters
+    m_pars <- 
+      x$cal_m_ref_fit$stanfit %>%
+      rstan::extract() %>%
+      as.data.frame
+    
+    ## validate the MCMC sampling
+    
+    # NUTS parameters
+    m_np <- bayesplot::nuts_params(x$cal_m_ref_fit)
+    
+    # trace plot
+    m_trace <- 
+      x$cal_m_ref_fit$stanfit %>%
+      bayesplot::mcmc_trace(
+        pars = c("(Intercept)", 
+                 paste0("varV", 1:4)),
+        np = m_np)
+    
+    # plot of the autocorrelation function
+    m_acf <- 
+      x$cal_m_ref_fit$stanfit %>%
+      bayesplot::mcmc_acf(
+        pars = c("(Intercept)", 
+                 paste0("varV", 1:4)),
+        lags = 10)
+    
+    ## predicted values
+    m_yrep <- 
+      rstanarm::posterior_predict(x$cal_m_ref_fit) %>%
+      rp_rescale(x$cal_m_ref$y) %>%
+      as.data.frame()
+    
+    ## residuals
+    m_residuals <- 
+      reg_base_edc_summary[, d$index_edc[!is.na(d$C)]] - m_yrep
+    
+    ## summarize
+    m_summary <- 
+      dplyr::bind_cols(
+        purrr::map_df(reg_base_edc_summary[, d$index_edc[!is.na(d$C)]], function(y) {
+          tibble::tibble(
+            y_mean = mean(y),
+            y_lwr = get_lower_ci(y, prob = ci_prob),
+            y_upr = get_upper_ci(y, prob = ci_prob)
+          )
+        }),
+        purrr::map_df(m_yrep, function(y) {
+          tibble::tibble(
+            yhat_mean = mean(y),
+            yhat_lwr = get_lower_ci(y, prob = ci_prob),
+            yhat_upr = get_upper_ci(y, prob = ci_prob)
+          )
+        }),
+        purrr::map_df(m_residuals, function(y) {
+          tibble::tibble(
+            residuals_mean = mean(y),
+            residuals_lwr = get_lower_ci(y, prob = ci_prob),
+            residuals_upr = get_upper_ci(y, prob = ci_prob)
+          )
+        })
+      )
+    
+    ## measured vs predicted data
+    m_y_yhat <- 
+      ggplot(m_summary, 
+             aes(x = yhat_mean, xmin = yhat_lwr, xmax = yhat_upr,
+                 y = y_mean, ymin = y_lwr, ymax = y_upr)) +
+      geom_errorbar(width = 0, colour = "grey") +
+      geom_errorbarh(height = 0, colour = "grey") +
+      geom_point() +
+      geom_abline(intercept = 0, slope = 1) +
+      coord_fixed() +
+      scale_y_continuous(limits = range(c(m_summary$y_lwr, m_summary$y_upr))) +
+      labs(x = "Predicted", y = "Measured")
+    
+    ## posterior predictive check
+    popc_yrep <- 
+      m_yrep %>%
+      dplyr::slice(1:50) %>%
+      as.matrix()
+    
+    m_popc <- bayesplot::ppc_dens_overlay(m_summary$y_mean, popc_yrep)
+    
+    ## PSIS-LOO
+    m_loo <- loo::loo(x$cal_m_ref_fit, save_psis = TRUE)
+    
+    ## combine all
+    list(
+      m_pars = m_pars,
+      m_trace = m_trace,
+      m_acf = m_acf,
+      m_summary = m_summary,
+      m_y_yhat = m_y_yhat,
+      m_popc = m_popc,
+      m_loo = m_loo
+    )
+    
+  })
+
+cal_edc_hi_br_evaluations_fe <- 
+  purrr::map(seq_along(cal_refs_br_fe[5:6]), function(i) {
+    
+    x <- cal_refs_br_fe[5:6][[i]]
+    
+    # get parameters
+    m_pars <- 
+      x$cal_m_ref_fit$stanfit %>%
+      rstan::extract() %>%
+      as.data.frame
+    
+    ## validate the MCMC sampling
+    
+    # NUTS parameters
+    m_np <- bayesplot::nuts_params(x$cal_m_ref_fit)
+    
+    # trace plot
+    m_trace <- 
+      x$cal_m_ref_fit$stanfit %>%
+      bayesplot::mcmc_trace(
+        pars = c("(Intercept)", 
+                 paste0("varV", 1:4)),
+        np = m_np)
+    
+    # plot of the autocorrelation function
+    m_acf <- 
+      x$cal_m_ref_fit$stanfit %>%
+      bayesplot::mcmc_acf(
+        pars = c("(Intercept)", 
+                 paste0("varV", 1:4)),
+        lags = 10)
+    
+    ## predicted values
+    m_yrep <- 
+      rstanarm::posterior_predict(x$cal_m_ref_fit) %>%
+      rp_rescale(x$cal_m_ref$y) %>%
+      `*`(d_cal_tot[5:6][[i]]$hi3) %>%
+      as.data.frame()
+    
+    ## residuals
+    m_residuals <- 
+      reg_base_edc_summary[, d$index_edc[!is.na(d$C)]] - m_yrep
+    
+    ## summarize
+    m_summary <- 
+      dplyr::bind_cols(
+        purrr::map_df(reg_base_edc_summary[, d$index_edc[!is.na(d$C)]], function(y) {
+          tibble::tibble(
+            y_mean = mean(y),
+            y_lwr = get_lower_ci(y, prob = ci_prob),
+            y_upr = get_upper_ci(y, prob = ci_prob)
+          )
+        }),
+        purrr::map_df(m_yrep, function(y) {
+          tibble::tibble(
+            yhat_mean = mean(y),
+            yhat_lwr = get_lower_ci(y, prob = ci_prob),
+            yhat_upr = get_upper_ci(y, prob = ci_prob)
+          )
+        }),
+        purrr::map_df(m_residuals, function(y) {
+          tibble::tibble(
+            residuals_mean = mean(y),
+            residuals_lwr = get_lower_ci(y, prob = ci_prob),
+            residuals_upr = get_upper_ci(y, prob = ci_prob)
+          )
+        })
+      )
+    
+    ## measured vs predicted data
+    m_y_yhat <- 
+      ggplot(m_summary, 
+             aes(x = yhat_mean, xmin = yhat_lwr, xmax = yhat_upr,
+                 y = y_mean, ymin = y_lwr, ymax = y_upr)) +
+      geom_errorbar(width = 0, colour = "grey") +
+      geom_errorbarh(height = 0, colour = "grey") +
+      geom_point() +
+      geom_abline(intercept = 0, slope = 1) +
+      coord_fixed() +
+      scale_y_continuous(limits = range(c(m_summary$y_lwr, m_summary$y_upr))) +
+      labs(x = "Predicted", y = "Measured")
+    
+    ## posterior predictive check
+    popc_yrep <- 
+      m_yrep %>%
+      dplyr::slice(1:50) %>%
+      as.matrix()
+    
+    m_popc <- bayesplot::ppc_dens_overlay(m_summary$y_mean, popc_yrep)
+    
+    ## PSIS-LOO
+    m_loo <- loo::loo(x$cal_m_ref_fit, save_psis = TRUE)
+    
+    ## combine all
+    list(
+      m_pars = m_pars,
+      m_trace = m_trace,
+      m_acf = m_acf,
+      m_summary = m_summary,
+      m_y_yhat = m_y_yhat,
+      m_popc = m_popc,
+      m_loo = m_loo
+    )
+    
+  })
+
+# combine all
+cal_ref_evaluations_fe <- 
+  c(
+    cal_eac_plsr_evaluations_fe,
+    cal_edc_plsr_evaluations_fe,
+    cal_edc_hi_plsr_evaluations_fe,
+    cal_eac_br_evaluations_fe,
+    cal_edc_br_evaluations_fe,
+    cal_edc_hi_br_evaluations_fe
+  )
+```
+
+```{r cal-fe-projection}
+## Project the reference models
+
+# PLSR-based models
+cal_plsr_proj_fe <- 
+  purrr::map(seq_along(cal_refs_plsr_fe), function(i) {
+
+    x <- cal_refs_plsr_fe[[i]]
+    
+    # perform variable selection
+    cal_vs <- 
+      x$cal_m_ref %>%
+      projpred::cv_varsel(method = method,
+                          nv_max = 60,
+                          nc = nc,
+                          ncpred = ncpred,
+                          relax = relax,
+                          intercept = intercept,
+                          seed = seed)
+    
+    # variable selection plot
+    cal_vs_plot <- 
+      cal_vs %>%
+      projpred::varsel_plot(alpha = alpha, 
+                            deltas = TRUE, 
+                            stats = c("elpd", "rmse"))
+    
+    # get the suggested model size
+    cal_vs_ss <- 
+      cal_vs %>%
+      projpred::suggest_size(stat = "elpd", 
+                             alpha = alpha)
+    
+    # get the projected model
+    cal_proj <- 
+      cal_vs %>%
+      projpred::project(nv = cal_vs_ss, 
+                        ns = 6000)
+    
+    # collect information on the selected variables
+    cal_vs_interpretation <- 
+      tibble::tibble(
+        vind = cal_vs$vind[seq_len(cal_vs_ss)],
+        wavenumber = d_cal$spectra[[1]]$x[cal_vs$vind[seq_len(cal_vs_ss)]],
+        beta_mean = apply(cal_proj$beta, 1, mean),
+        beta_lwr = apply(cal_proj$beta, 1, get_lower_ci, prob = ci_prob),
+        beta_upr = apply(cal_proj$beta, 1, get_upper_ci, prob = ci_prob)
+      )
+    
+    # plot of selected variables
+    cal_vs_spectra_plot <- 
+      plot(d[1, ]) + 
+      geom_vline(xintercept = d_cal$spectra[[1]]$x[cal_vs$vind[seq_len(cal_vs_ss)]], 
+                 colour = ifelse(apply(cal_proj$beta, 1, mean) > 0, "red", "blue")) +
+      theme(axis.text.y = element_blank(),
+            axis.ticks.y = element_blank()) +
+      labs(x = expression("Wavenumber ["*cm^{-1}*"]"),
+           y = "Intensity")
+    
+    # combine all data
+    list(
+      cal_vs = cal_vs,
+      cal_vs_plot = cal_vs_plot,
+      cal_vs_ss = cal_vs_ss,
+      cal_proj = cal_proj,
+      cal_vs_interpretation = cal_vs_interpretation,
+      cal_vs_spectra_plot = cal_vs_spectra_plot
+    )
+    
+  })
+
+# Bayesian regularization-based models
+cal_br_proj_fe <- 
+  purrr::map(cal_refs_br_fe, function(x) {
+    
+    # perform variable selection
+    cal_vs <- 
+      x$cal_m_ref_fit %>%
+      projpred::cv_varsel(method = method,
+                          nv_max = nv_max,
+                          nc = nc,
+                          ncpred = ncpred,
+                          relax = relax,
+                          intercept = intercept,
+                          seed = seed)
+    
+    # variable selection plot
+    cal_vs_plot <- 
+      cal_vs %>%
+      projpred::varsel_plot(alpha = alpha, 
+                            deltas = TRUE, 
+                            stats = c("elpd", "rmse"))
+    
+    # get the suggested model size
+    cal_vs_ss <- 
+      cal_vs %>%
+      projpred::suggest_size(stat = "elpd", 
+                             alpha = alpha)
+    
+    # get the projected model
+    cal_proj <- 
+      cal_vs %>%
+      projpred::project(nv = cal_vs_ss, 
+                        ns = 6000)
+    
+    # collect information on the selected variables
+    cal_vs_interpretation <- 
+      tibble::tibble(
+        vind = cal_vs$vind[seq_len(cal_vs_ss)],
+        wavenumber = d_cal$spectra[[1]]$x[cal_vs$vind[seq_len(cal_vs_ss)]],
+        beta_mean = apply(cal_proj$beta, 1, mean),
+        beta_lwr = apply(cal_proj$beta, 1, get_lower_ci, prob = ci_prob),
+        beta_upr = apply(cal_proj$beta, 1, get_upper_ci, prob = ci_prob)
+      )
+    
+    # plot of selected variables
+    cal_vs_spectra_plot <- 
+      plot(d[1, ]) + 
+      geom_vline(xintercept = d_cal$spectra[[1]]$x[cal_vs$vind[seq_len(cal_vs_ss)]], 
+                 colour = ifelse(apply(cal_proj$beta, 1, mean) > 0, "red", "blue")) +
+      theme(axis.text.y = element_blank(),
+            axis.ticks.y = element_blank()) +
+      labs(x = expression("Wavenumber ["*cm^{-1}*"]"),
+           y = "Intensity")
+    
+    # combine all data
+    list(
+      cal_vs = cal_vs,
+      cal_vs_plot = cal_vs_plot,
+      cal_vs_ss = cal_vs_ss,
+      cal_proj = cal_proj,
+      cal_vs_interpretation = cal_vs_interpretation,
+      cal_vs_spectra_plot = cal_vs_spectra_plot
+    )
+    
+  })
+```
+
+
+```{r cal-cv}
+### Cross-validation of selected models
+
+# prepare the data
+cal_cv_eac_data <- purrr::map(reg_cv_index_test_eac, function(i) {
+ 
+  i_train <- !i
+   
+   # adjust the data
+  list(
+    train = d_cal_tot_fe$d_cal_eac_fe[i_train, ],
+    test = d_cal_tot_fe$d_cal_eac_fe[!i_train, ]
+  )
+  
+}) %>% 
+  purrr::transpose()
+
+cal_cv_edc_data <- purrr::map(reg_cv_index_test_edc, function(i) {
+ 
+  i_train <- !i
+   
+  d_train <- d_cal_tot_fe$d_cal_edc_fe[i_train, ]
+  index <- purrr::map_lgl(as.data.frame(d_train$var), function(x) {
+    length(unique(x)) > 1
+  })
+  d_train$var <- d_train$var[, index]
+  d_test = d_cal_tot_fe$d_cal_edc_fe[!i_train, ]
+  d_test$var <- d_test$var[, index]
+  
+   # adjust the data
+  list(
+    train = d_train,
+    test = d_test
+  )
+  
+}) %>% 
+  purrr::transpose()
+
+# compute the CV regression models
+cal_cv_eac_fits <- 
+  purrr::map(seq_along(unique(reg_cv_index_eac)), function(i) {
+    
+    print(i)
+    
+    # get data
+    d_train <- cal_cv_eac_data$train[[i]]
+    
+    # define the prior distriution
+    cal_hs <- 
+      rstanarm::hs(df = 1, 
+                   global_df = 1, 
+                   global_scale = p0/(ncol(d_cal_tot_fe$d_cal_eac_fe$var) - p0) * 1/sqrt(nrow(d_cal_tot_fe$d_cal_eac_fe)), 
+                   slab_df = 4, 
+                   slab_scale = 1)
+    
+    ## compute the reference model
+    rstanarm::stan_glm(y_scaled ~ var,
+                       family = gaussian(),
+                       data = d_train,
+                       prior = cal_hs,
+                       seed = seed,
+                       chains = chains,
+                       iter = iter,
+                       cores = chains,
+                       warmup = warmup,
+                       weights = NULL
+    )
+    
+  })
+
+cal_cv_edc_fits <- 
+  purrr::map(seq_along(unique(reg_cv_index_edc)), function(i) {
+    
+    print(i)
+    
+    # get data
+    d_train <- cal_cv_edc_data$train[[i]]
+    d_test <- cal_cv_edc_data$test[[i]]
+    
+    # define the prior distriution
+    cal_hs <- 
+      rstanarm::hs(df = 1, 
+                   global_df = 1, 
+                   global_scale = p0/(ncol(d_cal_tot_fe$d_cal_edc_fe$var) - p0) * 1/sqrt(nrow(d_cal_tot_fe$d_cal_edc_fe)), 
+                   slab_df = 4, 
+                   slab_scale = 1)
+    
+    ## compute the reference model
+    rstanarm::stan_glm(y_scaled ~ var,
+                       family = gaussian(),
+                       data = d_train,
+                       prior = cal_hs,
+                       seed = seed,
+                       chains = chains,
+                       iter = iter,
+                       cores = chains,
+                       warmup = warmup,
+                       weights = NULL
+    )
+  })
+```
+
+```{r cal-cv-rmse}
+# compute the RMSE
+cal_cv_eac_rmse <- 
+  purrr::map_df(seq_along(unique(reg_cv_index_eac)), function(i) {
+    
+    print(i)
+    
+    # get the model
+    cv_fit <- cal_cv_eac_fits[[i]]
+    
+    # get predictions
+    yrep_test <- 
+      rstanarm::posterior_predict(cv_fit, draws = 6000, newdata = cal_cv_eac_data$test[[i]]) %>%
+      rp_rescale(d_cal_tot_fe$d_cal_eac_fe$y_scaled)
+    
+    # compute RMSE for each MCMC sample
+    tibble::tibble(
+      cv_fold = i,
+      rmse = sqrt(apply((reg_base_eac_summary[, d$index_eac[!is.na(d$C)]][, reg_cv_index_test_eac[[i]], drop = FALSE] - yrep_test)^2, 1, mean)),
+      iter = seq_along(rmse)
+    )
+    
+  })
+
+cal_cv_edc_rmse <- 
+  purrr::map_df(seq_along(unique(reg_cv_index_edc)), function(i) {
+    
+    print(i)
+    
+    # get the model
+    cv_fit <- cal_cv_edc_fits[[i]]
+    
+    # get predictions
+    yrep_test <- 
+      rstanarm::posterior_predict(cv_fit, draws = 6000, newdata = cal_cv_edc_data$test[[i]]) %>%
+      rp_rescale(d_cal_tot_fe$d_cal_edc_fe$y_scaled)
+    
+    # compute RMSE for each MCMC sample
+    tibble::tibble(
+      cv_fold = i,
+      rmse = sqrt(apply((reg_base_edc_summary[, d$index_eac[!is.na(d$C)]][, reg_cv_index_test_edc[[i]], drop = FALSE] - yrep_test)^2, 1, mean)),
+      iter = seq_along(rmse)
+    )
+    
+  })
+```
+

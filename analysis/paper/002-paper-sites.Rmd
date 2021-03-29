@@ -1,0 +1,64 @@
+
+```{r study-sites-preprocessing}
+# add elevation data
+d_sites <- 
+  d_sites %>%
+  dplyr::mutate(
+    altitude = raster::extract(d_altitude,
+                               d_sites_sf, 
+                               method = "simple", 
+                               buffer = NULL, 
+                               small = FALSE, 
+                               df = FALSE)
+    )
+
+# add climate data
+d_climate <- 
+  dplyr::left_join(d_tmp, d_prc, by = c("site_id", "month")) %>%
+  dplyr::left_join(d_sites, by = "site_id")
+
+# ggplot(d_climate, aes(x = month, group = factor(site_label, levels = levels(d_var_sites$site_label)))) +
+# geom_path(aes(y = prc), colour = "blue") + 
+# geom_path(aes(y = tmp), colour = "red") + 
+# facet_grid(~factor(site_label, levels = levels(d_var_sites$site_label)))
+```
+
+```{r study-sites-map}
+# map of sites
+sites_map <- 
+  ggplot(data = world) +
+  geom_sf(data = world, colour = NA, fill = "lightgrey") +
+  geom_sf(data = d_sites_sf) +
+  ggrepel::geom_text_repel(data = d_sites, 
+                           aes(x = longitude, 
+                               y = latitude, 
+                               label = site_name), 
+                           force = 4) +
+  coord_sf(expand = FALSE) +
+  theme_bw() +
+  labs(x = "Longitude", y = "Latitude")
+```
+
+```{r study-sites-tab}
+# summarize climate data
+d_climate_summary <- 
+  d_climate %>%
+  dplyr::group_by(site_label) %>%
+  dplyr::summarise(
+    site_id = unique(site_id),
+    site_name = unique(site_name),
+    peatland_type = dplyr::first(peatland_type),
+    current_vegetation = unique(current_vegetation), 
+    longitude = unique(longitude),
+    latitude = unique(latitude),
+    altitude = unique(altitude),
+    tmp_mean = mean(tmp),
+    prc_sum = sum(prc),
+    tmp_sd = sd(tmp),
+    prc_sd = sd(prc),
+    tmp_summer = mean(tmp[if(sign(latitude) == -1) month %in% c(12, 1, 2) else month %in% c(6, 7, 8)]),
+    prc_summer = mean(prc[if(sign(latitude) == -1) month %in% c(12, 1, 2) else month %in% c(6, 7, 8)])
+  ) %>% 
+  dplyr::mutate(site_label = factor(site_label, levels = site_label[site_id])) %>%
+  dplyr::arrange(site_id)
+```

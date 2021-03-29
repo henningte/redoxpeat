@@ -1,0 +1,1701 @@
+
+```{r reg-preparation}
+## prepare data for the regression models
+
+# subset the data
+d_reg <- 
+  d %>%
+  dplyr::filter(!is.na(C)) %>%
+  dplyr::select(-c("spectra"))
+
+# define constant offset for the edc to facilitate convergence
+edc_offset <- 0.05
+
+# scale the EAC and EDC
+el_t01 <- 
+  el_t0 %>%
+  dplyr::mutate(
+    eac_c_s = eac_c/max(eac_c, na.rm = TRUE),
+    edc_c_s = edc_c/max(edc_c, na.rm = TRUE) + units::set_units(edc_offset, "1")
+  )
+
+# scale the predictor variables
+d_reg %<>% 
+ dplyr::mutate(
+   `H:C_s` = 
+     `H:C` %>% 
+     quantities::drop_quantities() %>% 
+     scale(center = TRUE, scale = TRUE) %>% 
+     as.vector(),
+   `O:C_s` = 
+     `O:C` %>% 
+     quantities::drop_quantities() %>% 
+     scale(center = TRUE, scale = TRUE) %>% 
+     as.vector(),
+   `N:C_s` = 
+     `N:C` %>% 
+     quantities::drop_quantities() %>% 
+     scale(center = TRUE, scale = TRUE) %>% 
+     as.vector(),
+   `S:C_s` = 
+     `S:C` %>% 
+     quantities::drop_quantities() %>% 
+     scale(center = TRUE, scale = TRUE) %>% 
+     as.vector() 
+ )
+
+# stan models
+m_ppc <- redoxpeat:::stanmodels$rp_regression_gamma1_prior_check
+m_ppc_student <- redoxpeat:::stanmodels$rp_regression_gamma2_student_prior_check
+m_reg_base <- redoxpeat:::stanmodels$rp_regression_base
+m_reg <- redoxpeat:::stanmodels$rp_regression_gamma1
+m_reg_student <- redoxpeat:::stanmodels$rp_regression_gamma2_student
+
+## prepare the data for stan
+
+# index for missing data
+index_eac <- !is.na(el_t01$eac_c) & el_t01$id_90 %in% d_reg$id_90
+
+# number of predictors
+k1 <- 2 # only H:C and O:C
+k2 <- 4 # H:C, O:C, N:C, S:C
+
+# get predictor variables
+predictors <- 
+  d_reg %>% 
+  dplyr::select(c("H:C_s", "O:C_s", "N:C_s", "S:C_s"))
+
+```
+
+```{r reg-ppc-preparation}
+### Prior predictive check: prepare data
+
+## get data for which to evaluate the model during ppc
+ppc_data <- 
+  purrr::map2(predictors, seq_len(ncol(predictors)), function(x, i) {
+    
+    # get min/max of current variable
+    res <- 
+      tibble::tibble(
+        variable = colnames(predictors)[[i]],
+        variable_range = c("min", "max"),
+        a = range(x)
+      )
+    colnames(res)[[3]] <- colnames(predictors)[[i]]
+    
+    # get mean of other variables
+    others <- dplyr::summarise_all(predictors[, -i, drop = FALSE], mean, na.rm = TRUE)
+    others <- dplyr::bind_rows(others, others)
+    
+    # combine res and others
+    dplyr::bind_cols(res, others)
+    
+  }) %>%
+  dplyr::bind_rows()
+
+# y ~ H:C + O:C
+ppc1_data <- 
+  ppc_data %>% 
+  dplyr::filter(variable %in% c("H:C_s", "O:C_s"))
+
+ppc1_data_stan <- 
+  list(
+    # variables
+    y = 
+      el_t01 %>% 
+      dplyr::filter(index_eac) %>% 
+      dplyr::select(eac_c_s) %>% 
+      unlist(),
+    X = 
+      ppc1_data %>%
+      dplyr::select(-c(variable, variable_range, `N:C_s`, `S:C_s`)) %>% 
+      as.matrix(),
+    # counters
+    N_i = sum(index_eac),
+    N_j = nrow(ppc1_data),
+    k = k1,
+    # indices
+    id_layers_measurements = as.integer(rep(1L, sum(index_eac))),
+    # priors
+    mu_beta_0 = log(0.5),
+    sigma_beta_0 = 0.2,
+    lambda_2 = 10,
+    lambda_1 = 10,
+    mu_betas = array(rep(0, k1)),
+    sigma_betas = array(rep(0.15, k1)),
+    y_layers_scale_factor = 10,
+    nu_betas = 6
+  )
+
+# y ~ H:C + O:C + N:C + S:C
+ppc2_data <- ppc_data
+
+ppc2_data_stan <- 
+  list(
+    # variables
+    y = 
+      el_t01 %>% 
+      dplyr::filter(index_eac) %>% 
+      dplyr::select(eac_c_s) %>% 
+      unlist(),
+    X = 
+      ppc2_data  %>% 
+      dplyr::select(-c(variable, variable_range)) %>% 
+      as.matrix(),
+    # counters
+    N_i = sum(index_eac),
+    N_j = nrow(ppc2_data),
+    k = k2,
+    # indices
+    id_layers_measurements = as.integer(rep(1L, sum(index_eac))),
+    # priors
+    mu_beta_0 = log(0.5),
+    sigma_beta_0 = 0.2,
+    lambda_2 = 10,
+    lambda_1 = 10,
+    mu_betas = array(rep(0, k2)),
+    sigma_betas = array(rep(0.15, k2)),
+    y_layers_scale_factor = 10,
+    nu_betas = 6
+  )
+```
+
+
+```{r reg-ppc-gaussian}
+### Prior predictive check for models with Gaussian slopes 
+
+## sample
+
+# y ~ H:C + O:C
+ppc1_fit <- rstan::sampling(object = m_ppc,
+                            data = ppc1_data_stan,
+                            seed = seed,
+                            cores = 1,
+                            chains = 1,
+                            iter = 2000, 
+                            warmup = 0,
+                            algorithm = "Fixed_param")
+
+# y ~ H:C + O:C + N:C + S:C
+ppc2_fit <- rstan::sampling(object = m_ppc,
+                            data = ppc2_data_stan,
+                            seed = seed,
+                            cores = 1,
+                            chains = 1,
+                            iter = 2000, 
+                            warmup = 0,
+                            algorithm = "Fixed_param")
+
+## get parameters and lines to plot
+
+# y ~ H:C + O:C
+ppc1_pars <- 
+  ppc1_fit %>%
+  rstan::extract() %>%
+  as.data.frame()
+
+# get a data.frame with the regression effects implied by the priors
+ppc1_lines_df <- 
+  ppc1_pars %>% 
+  dplyr::select(dplyr::all_of(paste0("mu_j_scaled.", seq_len(nrow(ppc1_data)))))
+
+ppc1_lines_df <- 
+  purrr::map_df(unique(ppc1_data$variable), function(x) {
+    index <- which(ppc1_data$variable == x)
+    index1 <- which(unique(ppc1_data$variable) == x)
+    iter1 <- nrow(ppc1_lines_df)
+    tibble::tibble(
+      prior_beta = "Gaussian",
+      model = "H:C + O:C",
+      variable = x,
+      iter = rep(seq_len(iter1), 2),
+      y = ppc1_lines_df[, index] %>% unlist(),
+      x = rep(ppc1_data[index, index1 + 2L, drop = TRUE], each = iter1)
+    )
+  })
+
+# y ~ H:C + O:C + N:C + S:C
+ppc2_pars <- 
+  ppc2_fit %>%
+  rstan::extract() %>%
+  as.data.frame()
+
+# get a data.frame with the regression effects implied by the priors
+ppc2_lines_df <- 
+  ppc2_pars %>% 
+  dplyr::select(dplyr::all_of(paste0("mu_j_scaled.", seq_len(nrow(ppc2_data)))))
+
+ppc2_lines_df <- 
+  purrr::map_df(unique(ppc2_data$variable), function(x) {
+    index <- which(ppc2_data$variable == x)
+    index1 <- which(unique(ppc2_data$variable) == x)
+    iter1 <- nrow(ppc2_lines_df)
+    tibble::tibble(
+      prior_beta = "Gaussian",
+      model = "H:C + O:C + N:C + S:C",
+      variable = x,
+      iter = rep(seq_len(iter1), 2),
+      y = ppc2_lines_df[, index] %>% unlist(),
+      x = rep(ppc2_data[index, index1 + 2L, drop = TRUE], each = iter1)
+    )
+  })
+```
+
+```{r reg-ppc-student}
+### Prior predictive check for models with Student-t slopes 
+
+## sample
+
+# y ~ H:C + O:C
+ppc3_fit <- rstan::sampling(object = m_ppc_student,
+                            data = ppc1_data_stan,
+                            seed = seed,
+                            cores = 1,
+                            chains = 1,
+                            iter = 2000, 
+                            warmup = 0,
+                            algorithm = "Fixed_param")
+
+# y ~ H:C + O:C + N:C + S:C
+ppc4_fit <- rstan::sampling(object = m_ppc_student,
+                            data = ppc2_data_stan,
+                            seed = seed,
+                            cores = 1,
+                            chains = 1,
+                            iter = 2000, 
+                            warmup = 0,
+                            algorithm = "Fixed_param")
+
+## get parameters and lines to plot
+
+# y ~ H:C + O:C
+ppc3_pars <- 
+  ppc3_fit %>%
+  rstan::extract() %>%
+  as.data.frame()
+
+# get a data.frame with the regression effects implied by the priors
+ppc3_lines_df <- 
+  ppc3_pars %>% 
+  dplyr::select(dplyr::all_of(paste0("mu_j_scaled.", seq_len(nrow(ppc1_data)))))
+
+ppc3_lines_df <- 
+  purrr::map_df(unique(ppc1_data$variable), function(x) {
+    index <- which(ppc1_data$variable == x)
+    index1 <- which(unique(ppc1_data$variable) == x)
+    iter1 <- nrow(ppc3_lines_df)
+    tibble::tibble(
+      prior_beta = "Student-t",
+      model = "H:C + O:C",
+      variable = x,
+      iter = rep(seq_len(iter1), 2),
+      y = ppc3_lines_df[, index] %>% unlist(),
+      x = rep(ppc1_data[index, index1 + 2L, drop = TRUE], each = iter1)
+    )
+  })
+
+# y ~ H:C + O:C + N:C + S:C
+ppc4_pars <- 
+  ppc4_fit %>%
+  rstan::extract() %>%
+  as.data.frame()
+
+# get a data.frame with the regression effects implied by the priors
+ppc4_lines_df <- 
+  ppc4_pars %>% 
+  dplyr::select(dplyr::all_of(paste0("mu_j_scaled.", seq_len(nrow(ppc2_data)))))
+
+ppc4_lines_df <- 
+  purrr::map_df(unique(ppc2_data$variable), function(x) {
+    index <- which(ppc2_data$variable == x)
+    index1 <- which(unique(ppc2_data$variable) == x)
+    iter1 <- nrow(ppc4_lines_df)
+    tibble::tibble(
+      prior_beta = "Student-t",
+      model = "H:C + O:C + N:C + S:C",
+      variable = x,
+      iter = rep(seq_len(iter1), 2),
+      y = ppc4_lines_df[, index] %>% unlist(),
+      x = rep(ppc2_data[index, index1 + 2L, drop = TRUE], each = iter1)
+    )
+  })
+```
+
+```{r reg-ppc-plot}
+## Plot of the sampled lines for the prior predictive checks
+
+# combine data
+ppc_lines_df <- 
+  dplyr::bind_rows(
+    ppc1_lines_df,
+    ppc2_lines_df,
+    ppc3_lines_df,
+    ppc4_lines_df
+  )
+
+# recode variables
+ppc_lines_df %<>%
+  dplyr::mutate(variable = dplyr::recode(variable, 
+                                         "H:C_s" = "C:H[s]",
+                                         "O:C_s" = "C:O[s]",
+                                         "N:C_s" = "C:N[s]",
+                                         "S:C_s" = "C:S[s]"
+  ))
+
+# plot
+p_ppc <- 
+  ppc_lines_df %>%
+  dplyr::filter(iter %in% 1:100) %>%
+  ggplot(aes(x = x, y = y, group = iter)) + 
+  geom_line(alpha = 0.5) + 
+  facet_grid(variable ~ prior_beta + model, scales = "free", labeller = label_parsed) + 
+  labs(y = expression(Scaled~EAC[POM]~or~EDC[POM]), x = "Value")
+```
+
+```{r reg-base-model}
+## Model that just estimates the mean values of the replicate measurements
+
+## EAC
+
+# data
+reg_base_eac_data <- ppc1_data_stan
+reg_base_eac_data$y <- array(ppc1_data_stan$y)
+reg_base_eac_data$N_j <- nrow(d_reg)
+reg_base_eac_data$id_layers_measurements <- 
+  el_t01 %>%
+  dplyr::filter(index_eac) %>%
+  dplyr::select(id_90) %>%
+  unlist() %>%
+  as.factor() %>%
+  as.integer()  
+
+
+# fit the model
+reg_base_eac_fit <- rstan::sampling(object = m_reg_base,
+                            data = reg_base_eac_data,
+                            seed = seed,
+                            cores = chains,
+                            chains = chains,
+                            iter = iter,
+                            warmup = warmup)
+
+# get parameters
+reg_base_eac_pars <- 
+  reg_base_eac_fit %>%
+  rstan::extract() %>%
+  as.data.frame()
+  
+
+## validate MCMC
+reg_base_eac_np <- bayesplot::nuts_params(reg_base_eac_fit)
+
+# trace plot
+reg_base_eac_trace <- 
+  reg_base_eac_fit %>%
+  bayesplot::mcmc_trace(pars = c("beta_0", "y_rep[1]", "mu_j[1]", "mu_j_rep[1]"), 
+                        np = reg_base_eac_np)
+
+# predicted values
+reg_base_eac_summary <- 
+  reg_base_eac_fit %>%
+  rstan::extract(pars = c(paste0("mu_j[", seq_len(reg_base_eac_data$N_j), "]"))) %>%
+  as.data.frame() * units::drop_units(max(el_t01$eac_c, na.rm = TRUE))/reg_base_eac_data$y_layers_scale_factor
+
+## EDC
+
+# data
+index_edc <- !is.na(el_t01$edc_c) & el_t01$id_90 %in% d_reg$id_90
+
+reg_base_edc_data <- ppc1_data_stan
+reg_base_edc_data$N_i <- sum(index_edc)
+reg_base_edc_data$N_j <- nrow(d_reg)
+reg_base_edc_data$y <- 
+  el_t01 %>% 
+  dplyr::filter(index_edc) %>% 
+  dplyr::mutate(edc_c_s = as.numeric(edc_c_s)) %>%
+  dplyr::select(edc_c_s) %>% 
+  unlist()
+reg_base_edc_data$id_layers_measurements <- 
+  el_t01 %>%
+  dplyr::filter(index_edc) %>%
+  dplyr::select(id_90) %>%
+  unlist() %>%
+  as.factor() %>%
+  as.integer()
+
+# fit the model
+reg_base_edc_fit <- rstan::sampling(object = m_reg_base,
+                            data = reg_base_edc_data,
+                            seed = seed,
+                            cores = chains,
+                            chains = chains,
+                            iter = iter,
+                            warmup = warmup)
+
+# get parameters
+reg_base_edc_pars <- 
+  reg_base_edc_fit %>%
+  rstan::extract() %>%
+  as.data.frame()
+  
+
+## validate MCMC
+reg_base_edc_np <- bayesplot::nuts_params(reg_base_edc_fit)
+
+# trace plot
+reg_base_edc_trace <- 
+  reg_base_edc_fit %>%
+  bayesplot::mcmc_trace(pars = c("beta_0", "y_rep[1]", "mu_j[1]", "mu_j_rep[1]"), 
+                        np = nuts_params(reg_base_edc_fit))
+
+# predicted values
+reg_base_edc_summary <- 
+  reg_base_edc_fit %>%
+  rstan::extract(pars = c(paste0("mu_j[", seq_len(reg_base_edc_data$N_j), "]"))) %>%
+  as.data.frame() %>%
+  magrittr::subtract(edc_offset) %>%
+  multiply_by(units::drop_units(max(el_t01$edc_c, na.rm = TRUE))/reg_base_edc_data$y_layers_scale_factor) 
+```
+
+```{r reg-model-fit}
+## update the data
+
+# EAC ~ H:C + O:C
+reg_eac1_data <- reg_base_eac_data
+reg_eac1_data$y <- array(el_t01$eac_c_s[index_eac])
+reg_eac1_data$X <- 
+  d_reg %>% 
+  dplyr::select(c("H:C_s", "O:C_s")) %>%
+  as.matrix()
+
+# EAC ~ H:C + O:C + N:C + S:C
+reg_eac2_data <- ppc2_data_stan
+reg_eac2_data$y <- array(el_t01$eac_c_s[index_eac])
+reg_eac2_data$N_j <- nrow(d_reg)
+reg_eac2_data$id_layers_measurements <- 
+  el_t01 %>%
+  dplyr::filter(index_eac) %>%
+  dplyr::select(id_90) %>%
+  unlist() %>%
+  as.factor() %>%
+  as.integer()  
+reg_eac2_data$X <- 
+  d_reg %>% 
+  dplyr::select(c("H:C_s", "O:C_s", "N:C_s", "S:C_s")) %>%
+  as.matrix()
+
+# EDC
+reg_edc1_data <- reg_eac1_data
+reg_edc1_data$N_i <- sum(index_edc)
+reg_edc1_data$y <- 
+  el_t01 %>% 
+  dplyr::filter(index_edc) %>% 
+  dplyr::select(edc_c_s) %>% 
+  unlist()
+reg_edc1_data$id_layers_measurements <- 
+  el_t01 %>%
+  dplyr::filter(index_edc) %>%
+  dplyr::select(id_90) %>%
+  unlist() %>%
+  as.factor() %>%
+  as.integer()
+
+reg_edc2_data <- reg_eac2_data
+reg_edc2_data$N_i <- sum(index_edc)
+reg_edc2_data$y <- 
+  el_t01 %>% 
+  dplyr::filter(index_edc) %>% 
+  dplyr::select(edc_c_s) %>% 
+  unlist()
+reg_edc2_data$id_layers_measurements <- 
+  el_t01 %>%
+  dplyr::filter(index_edc) %>%
+  dplyr::select(id_90) %>%
+  unlist() %>%
+  as.factor() %>%
+  as.integer()
+
+## fit the models
+
+# EAC ~ H:C + O:C, Gaussian
+reg_eac1_fit <- 
+  rstan::sampling(object = m_reg,
+                  data = reg_eac1_data,
+                  seed = seed,
+                  cores = chains,
+                  chains = chains,
+                  iter = iter,
+                  warmup = warmup)
+
+# EAC ~ H:C + O:C + N:C + S:C, Gaussian
+reg_eac2_fit <- 
+  rstan::sampling(object = m_reg,
+                  data = reg_eac2_data,
+                  seed = seed,
+                  cores = chains,
+                  chains = chains,
+                  iter = iter,
+                  warmup = warmup)
+
+# EAC ~ H:C + O:C, Student-t
+reg_eac3_fit <- 
+  rstan::sampling(object = m_reg_student,
+                  data = reg_eac1_data,
+                  seed = seed,
+                  cores = chains,
+                  chains = chains,
+                  iter = iter,
+                  warmup = warmup)
+
+# EAC ~ H:C + O:C + N:C + S:C, Student-t
+reg_eac4_fit <- 
+  rstan::sampling(object = m_reg_student,
+                  data = reg_eac2_data,
+                  seed = seed,
+                  cores = chains,
+                  chains = chains,
+                  iter = iter,
+                  warmup = warmup)
+
+# EDC ~ H:C + O:C, Gaussian
+reg_edc1_fit <- 
+  rstan::sampling(object = m_reg,
+                  data = reg_edc1_data,
+                  seed = seed,
+                  cores = chains,
+                  chains = chains,
+                  iter = iter,
+                  warmup = warmup)
+
+# EDC ~ H:C + O:C + N:C + S:C, Gaussian
+reg_edc2_fit <- 
+  rstan::sampling(object = m_reg,
+                  data = reg_edc2_data,
+                  seed = seed,
+                  cores = chains,
+                  chains = chains,
+                  iter = iter,
+                  warmup = warmup)
+
+# EDC ~ H:C + O:C, Student-t
+reg_edc3_fit <- 
+  rstan::sampling(object = m_reg_student,
+                  data = reg_edc1_data,
+                  seed = seed,
+                  cores = chains,
+                  chains = chains,
+                  iter = iter,
+                  warmup = warmup)
+
+# EDC ~ H:C + O:C + N:C + S:C, Student-t
+reg_edc4_fit <- 
+  rstan::sampling(object = m_reg_student,
+                  data = reg_edc2_data,
+                  seed = seed,
+                  cores = chains,
+                  chains = chains,
+                  iter = iter,
+                  warmup = warmup)
+```
+
+
+```{r reg-evaluation}
+## Evaluate the models
+
+# collect models
+reg_eac_fits <- 
+  list(
+    reg_eac1_fit,
+    reg_eac2_fit,
+    reg_eac3_fit,
+    reg_eac4_fit
+  )
+
+reg_edc_fits <- 
+  list(
+    reg_edc1_fit,
+    reg_edc2_fit,
+    reg_edc3_fit,
+    reg_edc4_fit
+  )
+
+# evaluate models
+reg_eac_evaluations <- 
+  purrr::map(reg_eac_fits, function(x) {
+    
+    # get parameters
+    m_pars <- 
+      x %>%
+      rstan::extract() %>%
+      as.data.frame
+    
+    ## validate the MCMC sampling
+    
+    # NUTS parameters
+    m_np <- bayesplot::nuts_params(x)
+    
+    # trace plot
+    m_trace <- 
+      x %>%
+      bayesplot::mcmc_trace(
+        pars = c("beta_0", "y_rep[1]", "mu_j[1]", "mu_j_rep[1]", 
+                 paste0("betas[", seq_len(sum(stringr::str_detect(colnames(m_pars), "betas."))),"]")),
+        np = m_np)
+    
+    # plot of the autocorrelation function
+    m_acf <- 
+      x %>%
+      bayesplot::mcmc_acf(pars = c("beta_0", "y_rep[1]", "mu_j[1]", "mu_j_rep[1]", 
+                                   paste0("betas[", seq_len(sum(stringr::str_detect(colnames(m_pars), "betas."))),"]")),
+                          lags = 10)
+    
+    ## predicted values
+    m_yrep <- 
+      m_pars %>%
+      dplyr::select(which(stringr::str_detect(colnames(.), pattern = "mu_j_rep"))) * units::drop_units(max(el_t01$eac_c, na.rm = TRUE))
+    
+    
+    ## residuals
+    m_residuals <- 
+      reg_base_eac_summary - m_yrep
+    
+    ## summarize
+    m_summary <- 
+      dplyr::bind_cols(
+        purrr::map_df(reg_base_eac_summary, function(y) {
+          tibble::tibble(
+            y_mean = mean(y),
+            y_lwr = get_lower_ci(y, prob = ci_prob),
+            y_upr = get_upper_ci(y, prob = ci_prob)
+          )
+        }),
+        purrr::map_df(m_yrep, function(y) {
+          tibble::tibble(
+            yhat_mean = mean(y),
+            yhat_lwr = get_lower_ci(y, prob = ci_prob),
+            yhat_upr = get_upper_ci(y, prob = ci_prob)
+          )
+        }),
+        purrr::map_df(m_residuals, function(y) {
+          tibble::tibble(
+            residuals_mean = mean(y),
+            residuals_lwr = get_lower_ci(y, prob = ci_prob),
+            residuals_upr = get_upper_ci(y, prob = ci_prob)
+          )
+        })
+      )
+    
+    ## measured vs predicted data
+    m_y_yhat <- 
+      ggplot(m_summary, 
+             aes(x = yhat_mean, xmin = yhat_lwr, xmax = yhat_upr,
+                 y = y_mean, ymin = y_lwr, ymax = y_upr)) +
+      geom_errorbar(width = 0, colour = "grey") +
+      geom_errorbarh(height = 0, colour = "grey") +
+      geom_point() +
+      geom_abline(intercept = 0, slope = 1) +
+      coord_fixed() +
+      scale_y_continuous(limits = range(c(m_summary$yhat_lwr, m_summary$yhat_upr))) +
+      labs(x = "Predicted", y = "Measured")
+    
+    ## posterior predictive check
+    popc_yrep <- 
+      m_yrep %>%
+      dplyr::slice(1:50) %>%
+      as.matrix()
+    
+    m_popc <- bayesplot::ppc_dens_overlay(m_summary$y_mean, popc_yrep)
+    
+    ## PSIS-LOO
+    m_loo <- loo::loo(x, save_psis = TRUE)
+    
+    ## combine all
+    list(
+      m_pars = m_pars,
+      m_trace = m_trace,
+      m_acf = m_acf,
+      m_summary = m_summary,
+      m_y_yhat = m_y_yhat,
+      m_popc = m_popc,
+      m_loo = m_loo
+    )
+    
+  })
+
+reg_edc_evaluations <- 
+  purrr::map(reg_edc_fits, function(x) {
+    
+    # get parameters
+    m_pars <- 
+      x %>%
+      rstan::extract() %>%
+      as.data.frame
+    
+    ## validate the MCMC sampling
+    
+    # NUTS parameters
+    m_np <- bayesplot::nuts_params(x)
+    
+    # trace plot
+    m_trace <- 
+      x %>%
+      bayesplot::mcmc_trace(
+        pars = c("beta_0", "y_rep[1]", "mu_j[1]", "mu_j_rep[1]", 
+                 paste0("betas[", seq_len(sum(stringr::str_detect(colnames(m_pars), "betas."))),"]")),
+        np = m_np)
+    
+    # plot of the autocorrelation function
+    m_acf <- 
+      x %>%
+      bayesplot::mcmc_acf(pars = c("beta_0", "y_rep[1]", "mu_j[1]", "mu_j_rep[1]", 
+                                   paste0("betas[", seq_len(sum(stringr::str_detect(colnames(m_pars), "betas."))),"]")),
+                          lags = 10)
+    
+    ## predicted values
+    m_yrep <- 
+      m_pars %>%
+      dplyr::select(which(stringr::str_detect(colnames(.), pattern = "mu_j_rep"))) %>%
+    magrittr::subtract(edc_offset) %>% 
+      magrittr::multiply_by(units::drop_units(max(el_t01$edc_c, na.rm = TRUE))) 
+    
+    
+    ## residuals
+    m_residuals <- 
+      reg_base_edc_summary - m_yrep
+    
+    ## summarize
+    m_summary <- 
+      dplyr::bind_cols(
+        purrr::map_df(reg_base_edc_summary, function(y) {
+          tibble::tibble(
+            y_mean = mean(y),
+            y_lwr = get_lower_ci(y, prob = ci_prob),
+            y_upr = get_upper_ci(y, prob = ci_prob)
+          )
+        }),
+        purrr::map_df(m_yrep, function(y) {
+          tibble::tibble(
+            yhat_mean = mean(y),
+            yhat_lwr = get_lower_ci(y, prob = ci_prob),
+            yhat_upr = get_upper_ci(y, prob = ci_prob)
+          )
+        }),
+        purrr::map_df(m_residuals, function(y) {
+          tibble::tibble(
+            residuals_mean = mean(y),
+            residuals_lwr = get_lower_ci(y, prob = ci_prob),
+            residuals_upr = get_upper_ci(y, prob = ci_prob)
+          )
+        })
+      )
+    
+    ## measured vs predicted data
+    m_y_yhat <- 
+      ggplot(m_summary, 
+             aes(x = yhat_mean, xmin = yhat_lwr, xmax = yhat_upr,
+                 y = y_mean, ymin = y_lwr, ymax = y_upr)) +
+      geom_errorbar(width = 0, colour = "grey") +
+      geom_errorbarh(height = 0, colour = "grey") +
+      geom_point() +
+      geom_abline(intercept = 0, slope = 1) +
+      coord_fixed() +
+      scale_y_continuous(limits = range(c(m_summary$yhat_lwr, m_summary$yhat_upr))) +
+      labs(x = "Predicted", y = "Measured")
+    
+    ## posterior predictive check
+    popc_yrep <- 
+      m_yrep %>%
+      dplyr::slice(1:50) %>%
+      as.matrix()
+    
+    m_popc <- bayesplot::ppc_dens_overlay(m_summary$y_mean, popc_yrep)
+    
+    ## PSIS-LOO
+    m_loo <- loo::loo(x, save_psis = TRUE)
+    
+    ## combine all
+    list(
+      m_pars = m_pars,
+      m_trace = m_trace,
+      m_acf = m_acf,
+      m_summary = m_summary,
+      m_y_yhat = m_y_yhat,
+      m_popc = m_popc,
+      m_loo = m_loo
+    )
+    
+  })
+
+```
+
+```{r reg-fe}
+## prepare data for the regression models
+
+# subset the data
+d_reg_fe_eac <- 
+  d %>%
+  dplyr::filter(!is.na(C) & index_eac) %>%
+  dplyr::select(-c("spectra"))
+
+d_reg_fe_edc <- 
+  d %>%
+  dplyr::filter(!is.na(C) & index_edc) %>%
+  dplyr::select(-c("spectra"))
+
+# scale the EAC and EDC
+el_t01_fe <- 
+  el_t0 %>%
+  dplyr::mutate(
+    eac_c_s = eac_c/max(eac_c, na.rm = TRUE),
+    edc_c_s = edc_c/max(edc_c, na.rm = TRUE) + units::set_units(edc_offset, "1")
+  )
+
+# scale the predictor variables
+d_reg_fe_eac %<>% 
+ dplyr::mutate(
+   `H:C_s` = 
+     `H:C` %>% 
+     quantities::drop_quantities() %>% 
+     scale(center = TRUE, scale = TRUE) %>% 
+     as.vector(),
+   `O:C_s` = 
+     `O:C` %>% 
+     quantities::drop_quantities() %>% 
+     scale(center = TRUE, scale = TRUE) %>% 
+     as.vector(),
+   `N:C_s` = 
+     `N:C` %>% 
+     quantities::drop_quantities() %>% 
+     scale(center = TRUE, scale = TRUE) %>% 
+     as.vector(),
+   `S:C_s` = 
+     `S:C` %>% 
+     quantities::drop_quantities() %>% 
+     scale(center = TRUE, scale = TRUE) %>% 
+     as.vector() 
+ )
+
+d_reg_fe_edc %<>% 
+ dplyr::mutate(
+   `H:C_s` = 
+     `H:C` %>% 
+     quantities::drop_quantities() %>% 
+     scale(center = TRUE, scale = TRUE) %>% 
+     as.vector(),
+   `O:C_s` = 
+     `O:C` %>% 
+     quantities::drop_quantities() %>% 
+     scale(center = TRUE, scale = TRUE) %>% 
+     as.vector(),
+   `N:C_s` = 
+     `N:C` %>% 
+     quantities::drop_quantities() %>% 
+     scale(center = TRUE, scale = TRUE) %>% 
+     as.vector(),
+   `S:C_s` = 
+     `S:C` %>% 
+     quantities::drop_quantities() %>% 
+     scale(center = TRUE, scale = TRUE) %>% 
+     as.vector() 
+ )
+
+index_eac <- !is.na(el_t01_fe$eac_c) & el_t01_fe$id_90 %in% d_reg_fe_eac$id_90
+index_edc <- !is.na(el_t01_fe$edc_c) & el_t01_fe$id_90 %in% d_reg_fe_edc$id_90
+
+# get predictor variables
+predictors_eac <- 
+  d_reg_fe_eac %>% 
+  dplyr::select(c("H:C_s", "O:C_s", "N:C_s", "S:C_s"))
+
+predictors_edc <- 
+  d_reg_fe_edc %>% 
+  dplyr::select(c("H:C_s", "O:C_s", "N:C_s", "S:C_s"))
+
+# prepare stan data
+ppc_data <- 
+  purrr::map2(predictors, seq_len(ncol(predictors_eac)), function(x, i) {
+    
+    # get min/max of current variable
+    res <- 
+      tibble::tibble(
+        variable = colnames(predictors_eac)[[i]],
+        variable_range = c("min", "max"),
+        a = range(x)
+      )
+    colnames(res)[[3]] <- colnames(predictors_eac)[[i]]
+    
+    # get mean of other variables
+    others <- dplyr::summarise_all(predictors_eac[, -i, drop = FALSE], mean, na.rm = TRUE)
+    others <- dplyr::bind_rows(others, others)
+    
+    # combine res and others
+    dplyr::bind_cols(res, others)
+    
+  }) %>%
+  dplyr::bind_rows()
+
+# y ~ H:C + O:C
+ppc1_data <- 
+  ppc_data %>% 
+  dplyr::filter(variable %in% c("H:C_s", "O:C_s"))
+
+ppc1_data_stan <- 
+  list(
+    # variables
+    y = 
+      el_t01_fe %>% 
+      dplyr::filter(index_eac) %>% 
+      dplyr::select(eac_c_s) %>% 
+      unlist(),
+    X = 
+      ppc1_data %>%
+      dplyr::select(-c(variable, variable_range, `N:C_s`, `S:C_s`)) %>% 
+      as.matrix(),
+    # counters
+    N_i = sum(index_eac),
+    N_j = nrow(ppc1_data),
+    k = k1,
+    # indices
+    id_layers_measurements = as.integer(rep(1L, sum(index_eac))),
+    # priors
+    mu_beta_0 = log(0.5),
+    sigma_beta_0 = 0.2,
+    lambda_2 = 10,
+    lambda_1 = 10,
+    mu_betas = array(rep(0, k1)),
+    sigma_betas = array(rep(0.15, k1)),
+    y_layers_scale_factor = 10,
+    nu_betas = 6
+  )
+
+# y ~ H:C + O:C + N:C + S:C
+ppc2_data <- ppc_data
+
+ppc2_data_stan <- 
+  list(
+    # variables
+    y = 
+      el_t01_fe %>% 
+      dplyr::filter(index_eac) %>% 
+      dplyr::select(eac_c_s) %>% 
+      unlist(),
+    X = 
+      ppc2_data  %>% 
+      dplyr::select(-c(variable, variable_range)) %>% 
+      as.matrix(),
+    # counters
+    N_i = sum(index_eac),
+    N_j = nrow(ppc2_data),
+    k = k2,
+    # indices
+    id_layers_measurements = as.integer(rep(1L, sum(index_eac))),
+    # priors
+    mu_beta_0 = log(0.5),
+    sigma_beta_0 = 0.2,
+    lambda_2 = 10,
+    lambda_1 = 10,
+    mu_betas = array(rep(0, k2)),
+    sigma_betas = array(rep(0.15, k2)),
+    y_layers_scale_factor = 10,
+    nu_betas = 6
+  )
+```
+
+```{r reg-fe-model-fit}
+## update the data
+
+reg_base_eac_data_fe <- ppc1_data_stan
+reg_base_eac_data_fe$y <- array(ppc1_data_stan$y)
+reg_base_eac_data_fe$N_j <- nrow(d_reg_fe_eac)
+reg_base_eac_data_fe$id_layers_measurements <- 
+  el_t01_fe %>%
+  dplyr::filter(index_eac) %>%
+  dplyr::select(id_90) %>%
+  unlist() %>%
+  as.factor() %>%
+  as.integer()  
+
+# EAC ~ H:C + O:C
+reg_eac1_data_fe <- reg_base_eac_data_fe
+reg_eac1_data_fe$y <- array(el_t01_fe$eac_c_s[index_eac])
+reg_eac1_data_fe$X <- 
+    d_reg_fe_eac %>% 
+    dplyr::select(c("H:C_s", "O:C_s")) %>%
+    as.matrix()
+
+# EAC ~ H:C + O:C + N:C + S:C
+reg_eac2_data_fe <- ppc2_data_stan
+reg_eac2_data_fe$y <- array(el_t01_fe$eac_c_s[index_eac])
+reg_eac2_data_fe$N_j <- nrow(d_reg_fe_eac)
+reg_eac2_data_fe$id_layers_measurements <- 
+  el_t01_fe %>%
+  dplyr::filter(index_eac) %>%
+  dplyr::select(id_90) %>%
+  unlist() %>%
+  as.factor() %>%
+  as.integer()  
+reg_eac2_data_fe$X <- 
+  d_reg_fe_eac %>% 
+  dplyr::select(c("H:C_s", "O:C_s", "N:C_s", "S:C_s")) %>%
+  as.matrix()
+
+# EDC
+reg_edc1_data_fe <- reg_eac1_data_fe
+reg_edc1_data_fe$N_i <- sum(index_edc)
+reg_edc1_data_fe$N_j <- nrow(d_reg_fe_edc)
+reg_edc1_data_fe$y <- 
+    el_t01_fe %>% 
+    dplyr::filter(index_edc) %>% 
+    dplyr::select(edc_c_s) %>% 
+    unlist()
+reg_edc1_data_fe$id_layers_measurements <- 
+    el_t01_fe %>%
+    dplyr::filter(index_edc) %>%
+    dplyr::select(id_90) %>%
+    unlist() %>%
+    as.factor() %>%
+    as.integer()
+reg_edc1_data_fe$X <- 
+  d_reg_fe_edc %>% 
+  dplyr::select(c("H:C_s", "O:C_s")) %>%
+  as.matrix()
+
+reg_edc2_data_fe <- reg_eac2_data_fe
+reg_edc2_data_fe$N_i <- sum(index_edc)
+reg_edc2_data_fe$N_j <- nrow(d_reg_fe_edc)
+reg_edc2_data_fe$y <- 
+  el_t01_fe %>% 
+  dplyr::filter(index_edc) %>% 
+  dplyr::select(edc_c_s) %>% 
+  unlist()
+reg_edc2_data_fe$id_layers_measurements <- 
+  el_t01_fe %>%
+  dplyr::filter(index_edc) %>%
+  dplyr::select(id_90) %>%
+  unlist() %>%
+  as.factor() %>%
+  as.integer()
+reg_edc2_data_fe$X <- 
+  d_reg_fe_edc %>% 
+  dplyr::select(c("H:C_s", "O:C_s", "N:C_s", "S:C_s")) %>%
+  as.matrix()
+
+## fit the models
+
+# EAC ~ H:C + O:C, Gaussian
+reg_eac1_fit_fe <- 
+  rstan::sampling(object = m_reg,
+                  data = reg_eac1_data_fe,
+                  seed = seed,
+                  cores = chains,
+                  chains = chains,
+                  iter = iter,
+                  warmup = warmup)
+
+# EAC ~ H:C + O:C + N:C + S:C, Gaussian
+reg_eac2_fit_fe <- 
+  rstan::sampling(object = m_reg,
+                  data = reg_eac2_data_fe,
+                  seed = seed,
+                  cores = chains,
+                  chains = chains,
+                  iter = iter,
+                  warmup = warmup)
+
+# EAC ~ H:C + O:C, Student-t
+reg_eac3_fit_fe <- 
+  rstan::sampling(object = m_reg_student,
+                  data = reg_eac1_data_fe,
+                  seed = seed,
+                  cores = chains,
+                  chains = chains,
+                  iter = iter,
+                  warmup = warmup)
+
+# EAC ~ H:C + O:C + N:C + S:C, Student-t
+reg_eac4_fit_fe <- 
+  rstan::sampling(object = m_reg_student,
+                  data = reg_eac2_data_fe,
+                  seed = seed,
+                  cores = chains,
+                  chains = chains,
+                  iter = iter,
+                  warmup = warmup)
+
+# EDC ~ H:C + O:C, Gaussian
+reg_edc1_fit_fe <- 
+  rstan::sampling(object = m_reg,
+                  data = reg_edc1_data_fe,
+                  seed = seed,
+                  cores = chains,
+                  chains = chains,
+                  iter = iter,
+                  warmup = warmup)
+
+# EDC ~ H:C + O:C + N:C + S:C, Gaussian
+reg_edc2_fit_fe <- 
+  rstan::sampling(object = m_reg,
+                  data = reg_edc2_data_fe,
+                  seed = seed,
+                  cores = chains,
+                  chains = chains,
+                  iter = iter,
+                  warmup = warmup)
+
+# EDC ~ H:C + O:C, Student-t
+reg_edc3_fit_fe <- 
+  rstan::sampling(object = m_reg_student,
+                  data = reg_edc1_data_fe,
+                  seed = seed,
+                  cores = chains,
+                  chains = chains,
+                  iter = iter,
+                  warmup = warmup)
+
+# EDC ~ H:C + O:C + N:C + S:C, Student-t
+reg_edc4_fit_fe <- 
+  rstan::sampling(object = m_reg_student,
+                  data = reg_edc2_data_fe,
+                  seed = seed,
+                  cores = chains,
+                  chains = chains,
+                  iter = iter,
+                  warmup = warmup)
+```
+
+```{r reg-fe-evaluation}
+## Evaluate the models
+
+# collect models
+reg_eac_fits_fe <- 
+  list(
+    reg_eac1_fit_fe,
+    reg_eac2_fit_fe,
+    reg_eac3_fit_fe,
+    reg_eac4_fit_fe
+  )
+
+reg_edc_fits_fe <- 
+  list(
+    reg_edc1_fit_fe,
+    reg_edc2_fit_fe,
+    reg_edc3_fit_fe,
+    reg_edc4_fit_fe
+  )
+
+# evaluate models
+reg_eac_evaluations_fe <- 
+  purrr::map(reg_eac_fits_fe, function(x) {
+    
+    # get parameters
+    m_pars <- 
+      x %>%
+      rstan::extract() %>%
+      as.data.frame
+    
+    ## validate the MCMC sampling
+    
+    # NUTS parameters
+    m_np <- bayesplot::nuts_params(x)
+    
+    # trace plot
+    m_trace <- 
+      x %>%
+      bayesplot::mcmc_trace(
+        pars = c("beta_0", "y_rep[1]", "mu_j[1]", "mu_j_rep[1]", 
+                 paste0("betas[", seq_len(sum(stringr::str_detect(colnames(m_pars), "betas."))),"]")),
+        np = m_np)
+    
+    # plot of the autocorrelation function
+    m_acf <- 
+      x %>%
+      bayesplot::mcmc_acf(pars = c("beta_0", "y_rep[1]", "mu_j[1]", "mu_j_rep[1]", 
+                                   paste0("betas[", seq_len(sum(stringr::str_detect(colnames(m_pars), "betas."))),"]")),
+                          lags = 10)
+    
+    ## predicted values
+    m_yrep <- 
+      m_pars %>%
+      dplyr::select(which(stringr::str_detect(colnames(.), pattern = "mu_j_rep"))) * units::drop_units(max(el_t01_fe$eac_c[index_eac], na.rm = TRUE))
+    
+    ## residuals
+    m_residuals <- 
+      reg_base_eac_summary[, d$index_eac[!is.na(d$C)]] - m_yrep
+    
+    ## summarize
+    m_summary <- 
+      dplyr::bind_cols(
+        purrr::map_df(reg_base_eac_summary[, d$index_eac[!is.na(d$C)]], function(y) {
+          tibble::tibble(
+            y_mean = mean(y),
+            y_lwr = get_lower_ci(y, prob = ci_prob),
+            y_upr = get_upper_ci(y, prob = ci_prob)
+          )
+        }),
+        purrr::map_df(m_yrep, function(y) {
+          tibble::tibble(
+            yhat_mean = mean(y),
+            yhat_lwr = get_lower_ci(y, prob = ci_prob),
+            yhat_upr = get_upper_ci(y, prob = ci_prob)
+          )
+        }),
+        purrr::map_df(m_residuals, function(y) {
+          tibble::tibble(
+            residuals_mean = mean(y),
+            residuals_lwr = get_lower_ci(y, prob = ci_prob),
+            residuals_upr = get_upper_ci(y, prob = ci_prob)
+          )
+        })
+      )
+    
+    ## measured vs predicted data
+    m_y_yhat <- 
+      ggplot(m_summary, 
+             aes(x = yhat_mean, xmin = yhat_lwr, xmax = yhat_upr,
+                 y = y_mean, ymin = y_lwr, ymax = y_upr)) +
+      geom_errorbar(width = 0, colour = "grey") +
+      geom_errorbarh(height = 0, colour = "grey") +
+      geom_point() +
+      geom_abline(intercept = 0, slope = 1) +
+      coord_fixed() +
+      scale_y_continuous(limits = range(c(m_summary$yhat_lwr, m_summary$yhat_upr))) +
+      labs(x = "Predicted", y = "Measured")
+    
+    ## posterior predictive check
+    popc_yrep <- 
+      m_yrep %>%
+      dplyr::slice(1:50) %>%
+      as.matrix()
+    
+    m_popc <- bayesplot::ppc_dens_overlay(m_summary$y_mean, popc_yrep)
+    
+    ## PSIS-LOO
+    m_loo <- loo::loo(x, save_psis = TRUE)
+    
+    ## combine all
+    list(
+      m_pars = m_pars,
+      m_trace = m_trace,
+      m_acf = m_acf,
+      m_summary = m_summary,
+      m_y_yhat = m_y_yhat,
+      m_popc = m_popc,
+      m_loo = m_loo
+    )
+    
+  })
+
+reg_edc_evaluations_fe <- 
+  purrr::map(reg_edc_fits_fe, function(x) {
+    
+    # get parameters
+    m_pars <- 
+      x %>%
+      rstan::extract() %>%
+      as.data.frame
+    
+    ## validate the MCMC sampling
+    
+    # NUTS parameters
+    m_np <- bayesplot::nuts_params(x)
+    
+    # trace plot
+    m_trace <- 
+      x %>%
+      bayesplot::mcmc_trace(
+        pars = c("beta_0", "y_rep[1]", "mu_j[1]", "mu_j_rep[1]", 
+                 paste0("betas[", seq_len(sum(stringr::str_detect(colnames(m_pars), "betas."))),"]")),
+        np = m_np)
+    
+    # plot of the autocorrelation function
+    m_acf <- 
+      x %>%
+      bayesplot::mcmc_acf(pars = c("beta_0", "y_rep[1]", "mu_j[1]", "mu_j_rep[1]", 
+                                   paste0("betas[", seq_len(sum(stringr::str_detect(colnames(m_pars), "betas."))),"]")),
+                          lags = 10)
+    
+    ## predicted values
+    m_yrep <- 
+      m_pars %>%
+      dplyr::select(which(stringr::str_detect(colnames(.), pattern = "mu_j_rep"))) %>% 
+      magrittr::subtract(edc_offset) %>%
+      magrittr::multiply_by(units::drop_units(max(el_t01_fe$edc_c, na.rm = TRUE))) 
+    
+    
+    ## residuals
+    m_residuals <- 
+      reg_base_edc_summary[, d$index_edc[!is.na(d$C)]] - m_yrep
+    
+    ## summarize
+    m_summary <- 
+      dplyr::bind_cols(
+        purrr::map_df(reg_base_edc_summary[, d$index_edc[!is.na(d$C)]], function(y) {
+          tibble::tibble(
+            y_mean = mean(y),
+            y_lwr = get_lower_ci(y, prob = ci_prob),
+            y_upr = get_upper_ci(y, prob = ci_prob)
+          )
+        }),
+        purrr::map_df(m_yrep, function(y) {
+          tibble::tibble(
+            yhat_mean = mean(y),
+            yhat_lwr = get_lower_ci(y, prob = ci_prob),
+            yhat_upr = get_upper_ci(y, prob = ci_prob)
+          )
+        }),
+        purrr::map_df(m_residuals, function(y) {
+          tibble::tibble(
+            residuals_mean = mean(y),
+            residuals_lwr = get_lower_ci(y, prob = ci_prob),
+            residuals_upr = get_upper_ci(y, prob = ci_prob)
+          )
+        })
+      )
+    
+    ## measured vs predicted data
+    m_y_yhat <- 
+      ggplot(m_summary, 
+             aes(x = yhat_mean, xmin = yhat_lwr, xmax = yhat_upr,
+                 y = y_mean, ymin = y_lwr, ymax = y_upr)) +
+      geom_errorbar(width = 0, colour = "grey") +
+      geom_errorbarh(height = 0, colour = "grey") +
+      geom_point() +
+      geom_abline(intercept = 0, slope = 1) +
+      coord_fixed() +
+      scale_y_continuous(limits = range(c(m_summary$yhat_lwr, m_summary$yhat_upr))) +
+      labs(x = "Predicted", y = "Measured")
+    
+    ## posterior predictive check
+    popc_yrep <- 
+      m_yrep %>%
+      dplyr::slice(1:50) %>%
+      as.matrix()
+    
+    m_popc <- bayesplot::ppc_dens_overlay(m_summary$y_mean, popc_yrep)
+    
+    ## PSIS-LOO
+    m_loo <- loo::loo(x, save_psis = TRUE)
+    
+    ## combine all
+    list(
+      m_pars = m_pars,
+      m_trace = m_trace,
+      m_acf = m_acf,
+      m_summary = m_summary,
+      m_y_yhat = m_y_yhat,
+      m_popc = m_popc,
+      m_loo = m_loo
+    )
+    
+  })
+```
+
+```{r reg-cv}
+### 10-fold block-wise cross-validation
+
+## get the CV-folds
+
+# EAC
+reg_cv_index_eac <- 
+  d_reg_fe_eac %>%
+  dplyr::filter(index_eac) %>%
+  dplyr::pull(site_label) %>%
+  as.character() %>%
+  factor(levels = levels(d$site_label)[levels(d$site_label) %in% unique(.)])
+reg_cv_index_base <-  c("BB", "MK", "LT", "DE", "ISH", "KR", "TX", "DT", "LB", "LP")
+reg_cv_index_left <- c("MB", "PBR", "SKY II", "SKY I-1", "SKY I-6")
+
+set.seed(1)
+reg_cv_index_sel <- sample(reg_cv_index_base, size = 5, replace = FALSE)
+
+for(i in seq_along(reg_cv_index_left)) {
+  reg_cv_index_eac[reg_cv_index_eac == reg_cv_index_left[[i]]] <- reg_cv_index_sel[[i]]
+}
+reg_cv_index_eac <-  as.integer(reg_cv_index_eac)
+
+# EDC
+reg_cv_index_edc <- 
+  d_reg_fe_edc %>%
+  dplyr::filter(index_edc) %>%
+  dplyr::pull(site_label) %>%
+  as.character() %>%
+  factor(levels = levels(d$site_label)[levels(d$site_label) %in% unique(.)])
+
+reg_cv_index_base <-  c("BB", "MK", "LT", "DE", "ISH", "KR", "TX", "DT", "LB", "LP")
+reg_cv_index_left <- c("MB", "PBR", "SKY II", "SKY I-1", "SKY I-6")
+
+set.seed(1)
+reg_cv_index_sel <- sample(reg_cv_index_base, size = 5, replace = FALSE)
+
+for(i in seq_along(reg_cv_index_left)) {
+  reg_cv_index_edc[reg_cv_index_edc == reg_cv_index_left[[i]]] <- reg_cv_index_sel[[i]]
+}
+reg_cv_index_edc <-  as.integer(reg_cv_index_edc)
+
+## get indices for each CV fold
+
+# EAC
+reg_cv_index_test_eac <- 
+  purrr::map(unique(reg_cv_index_eac), function(i) {
+    reg_cv_index_eac == unique(reg_cv_index_eac)[[i]]
+  })
+
+# EDC
+reg_cv_index_test_edc <- 
+  purrr::map(unique(reg_cv_index_edc), function(i) {
+    reg_cv_index_edc == unique(reg_cv_index_edc)[[i]]
+  })
+
+# prepare the data
+cv_data_stan <- reg_eac2_data_fe
+
+reg_cv_eac_data <- purrr::map(reg_cv_index_test_eac, function(i) {
+ 
+  i_train <- !i
+  index_train <- index_eac & el_t01_fe$id_90 %in% d_reg_fe_eac$id_90[d_reg_fe_eac$index_eac][i_train]
+   
+   # adjust the data
+  
+    cv_data_stan$N_i <- sum(index_train)
+    cv_data_stan$N_j <- nrow(d_reg_fe_eac %>% dplyr::filter(index_eac) %>% dplyr::filter(i_train))
+    cv_data_stan$y <- 
+      el_t01_fe %>% 
+      dplyr::filter(index_train) %>% 
+      dplyr::select(eac_c_s) %>% 
+      unlist()
+    cv_data_stan$X <- 
+      d_reg_fe_eac %>%
+      dplyr::filter(index_eac) %>%
+      dplyr::filter(i_train) %>% 
+      dplyr::select(c("H:C_s", "O:C_s", "N:C_s", "S:C_s")) %>%
+      as.matrix()
+    cv_data_stan$id_layers_measurements <- 
+      el_t01_fe %>%
+      dplyr::filter(index_train) %>%
+      dplyr::select(id_90) %>%
+      unlist() %>%
+      as.factor() %>%
+      as.integer()
+    
+    list(
+      train = cv_data_stan,
+      test = 
+        d_reg_fe_eac %>%
+        dplyr::filter(index_eac) %>%
+        dplyr::filter(i) %>% 
+        dplyr::select(c("H:C_s", "O:C_s", "N:C_s", "S:C_s")) %>%
+        as.matrix()
+    )
+  
+}) %>% 
+  purrr::transpose()
+
+reg_cv_edc_data <- purrr::map(reg_cv_index_test_edc, function(i) {
+ 
+  i_train <- !i
+  index_train <- index_edc & el_t01$id_90 %in% d_reg_fe_edc$id_90[d_reg_fe_edc$index_edc][i_train]
+   
+   # adjust the data
+  
+    cv_data_stan$N_i <- sum(index_train)
+    cv_data_stan$N_j <- nrow(d_reg %>% dplyr::filter(index_edc) %>% dplyr::filter(i_train))
+    cv_data_stan$y <- 
+      el_t01_fe %>% 
+      dplyr::filter(index_train) %>% 
+      dplyr::select(edc_c_s) %>% 
+      unlist()
+    cv_data_stan$X <- 
+      d_reg_fe_edc %>% 
+      dplyr::filter(index_edc) %>%
+      dplyr::filter(i_train) %>% 
+      dplyr::select(c("H:C_s", "O:C_s", "N:C_s", "S:C_s")) %>%
+      as.matrix()
+    cv_data_stan$id_layers_measurements <- 
+      el_t01_fe %>%
+      dplyr::filter(index_train) %>%
+      dplyr::select(id_90) %>%
+      unlist() %>%
+      as.factor() %>%
+      as.integer()
+    
+    list(
+      train = cv_data_stan,
+      test = 
+        d_reg_fe_edc %>% 
+        dplyr::filter(index_edc) %>% 
+        dplyr::filter(i) %>% 
+        dplyr::select(c("H:C_s", "O:C_s", "N:C_s", "S:C_s")) %>%
+        as.matrix()
+    )
+  
+}) %>% 
+  purrr::transpose()
+```
+
+```{r reg-cv-fit}
+# compute the CV regression models
+reg_cv_eac2_fits <- 
+  purrr::map(seq_along(unique(reg_cv_index_eac)), function(i) {
+    
+    print(i)
+    
+    # get data
+    d_train <- reg_cv_eac_data$train[[i]]
+    d_test <- reg_cv_eac_data$test[[i]]
+    
+    # fit the model
+    cv_fit <- rstan::sampling(object = m_reg,
+                              data = d_train,
+                              seed = seed,
+                              cores = chains,
+                              chains = chains,
+                              iter = iter,
+                              warmup = warmup)
+    
+  })
+
+reg_cv_edc2_fits <- 
+  purrr::map(seq_along(unique(reg_cv_index_edc)), function(i) {
+    
+    print(i)
+    
+    # get data
+    d_train <- reg_cv_edc_data$train[[i]]
+    d_test <- reg_cv_edc_data$test[[i]]
+    
+    # fit the model
+    cv_fit <- rstan::sampling(object = m_reg,
+                              data = d_train,
+                              seed = seed,
+                              cores = chains,
+                              chains = chains,
+                              iter = iter,
+                              warmup = warmup)
+    
+  })
+```
+
+
+```{r reg-cv-rmse}
+# compute the RMSE
+reg_cv_eac2_rmse <- 
+  purrr::map_df(seq_along(unique(reg_cv_index_eac)), function(i) {
+    
+    print(i)
+    
+    # get the model
+    cv_fit <- reg_cv_eac2_fits[[i]]
+    
+    # get data
+    d_train <- reg_cv_eac_data$train[[i]]
+    d_test <- reg_cv_eac_data$test[[i]]
+    
+    # get parameters
+    pars <- 
+      cv_fit %>%
+      rstan::extract(pars = c(paste0("betas[", seq_len(d_train$k), "]"), 
+                              "beta_0", "sigma_2")) %>%
+      as.data.frame()
+    
+    # get predictions
+    betas <- 
+      pars %>%
+      dplyr::select(paste0("betas.", seq_len(d_train$k), ".")) %>%
+      as.matrix()
+    
+    partial_effects <- (betas * as.vector(unique(d_train$sigma_betas)))
+    
+    partial_effects <- 
+      purrr::map(seq_len(nrow(d_test)), function(i) {
+        res <- tibble::tibble(x = as.numeric(partial_effects %*% d_test[i, , drop = TRUE]))
+        colnames(res) <- paste0("y", i)
+        res
+      }) %>% dplyr::bind_cols()
+    
+    yrep_test <- purrr::map_df(partial_effects, function(x) {
+      exp(pars$beta_0 + x)
+    }) 
+    
+    gamma_a <- purrr::map_df(yrep_test, function(x) x^2/pars$sigma_2^2)
+    gamma_b <- purrr::map_df(yrep_test, function(x) x/(pars$sigma_2^2 * reg_base_eac_data$y_layers_scale_factor))
+    
+    set.seed(1)
+    yrep_test <- 
+      purrr::map2_df(gamma_a, gamma_b, function(a, b) {
+        rgamma(nrow(gamma_a), a, b) %>%
+          magrittr::divide_by(reg_base_eac_data$y_layers_scale_factor) %>%
+          magrittr::multiply_by(units::drop_units(max(el_t01_fe$eac_c[index_eac])))
+          
+      })
+    
+    # get residuals
+    
+    # compute RMSE for each MCMC sample
+    tibble::tibble(
+      cv_fold = i,
+      rmse = sqrt(apply((reg_base_eac_summary[, d$index_eac[!is.na(d$C)]][, reg_cv_index_test_eac[[i]], drop = FALSE] - yrep_test)^2, 1, mean)),
+      iter = seq_along(rmse)
+    )
+    
+  })
+
+reg_cv_edc2_rmse <- 
+  purrr::map_df(seq_along(unique(reg_cv_index_edc)), function(i) {
+    
+    print(i)
+    
+    # get the model
+    cv_fit <- reg_cv_edc2_fits[[i]]
+    
+    # get data
+    d_train <- reg_cv_edc_data$train[[i]]
+    d_test <- reg_cv_edc_data$test[[i]]
+    
+    # get parameters
+    pars <- 
+      cv_fit %>%
+      rstan::extract(pars = c(paste0("betas[", seq_len(d_train$k), "]"), 
+                              "beta_0", "sigma_2")) %>%
+      as.data.frame()
+    
+    # get predictions
+    betas <- 
+      pars %>%
+      dplyr::select(paste0("betas.", seq_len(d_train$k), ".")) %>%
+      as.matrix()
+    
+    partial_effects <- (betas * as.vector(unique(d_train$sigma_betas)))
+    
+    partial_effects <- 
+      purrr::map(seq_len(nrow(d_test)), function(i) {
+        res <- tibble::tibble(x = as.numeric(partial_effects %*% d_test[i, , drop = TRUE]))
+        colnames(res) <- paste0("y", i)
+        res
+      }) %>% dplyr::bind_cols()
+    
+    yrep_test <- purrr::map_df(partial_effects, function(x) {
+      exp(pars$beta_0 + x)
+    }) 
+    
+    gamma_a <- purrr::map_df(yrep_test, function(x) x^2/pars$sigma_2^2)
+    gamma_b <- purrr::map_df(yrep_test, function(x) x/(pars$sigma_2^2 * reg_base_edc_data$y_layers_scale_factor))
+    
+    set.seed(1)
+    yrep_test <- 
+      purrr::map2_df(gamma_a, gamma_b, function(a, b) {
+        rgamma(nrow(gamma_a), a, b) %>%
+          magrittr::divide_by(reg_base_edc_data$y_layers_scale_factor) %>%
+          magrittr::subtract(edc_offset) %>%
+          magrittr::multiply_by(units::drop_units(max(el_t01_fe$edc_c[index_edc])))
+      })
+    
+    # compute RMSE for each MCMC sample
+    tibble::tibble(
+      cv_fold = i,
+      rmse = sqrt(apply((reg_base_edc_summary[, d$index_edc[!is.na(d$C)]][, reg_cv_index_test_edc[[i]], drop = FALSE] - yrep_test)^2, 1, mean)),
+      iter = seq_along(rmse)
+    )
+    
+  })
+```
+
