@@ -50,7 +50,7 @@
 % Examples:
 % =======================
 %% Example: Using numerical, sort-by-authors citations.
-\documentclass[alpha-refs, lineno]{wiley-article-rmd}
+\documentclass[alpha-refs]{wiley-article-rmd}
 
 %% Example: Using author-year citations and anonymising submission
 % \documentclass[blind,alpha-refs]{wiley-article}
@@ -131,8 +131,7 @@
 % Pandoc header
 \usepackage[backend=biber, style=authoryear]{biblatex}
 \bibliography{references.bib}
-%\usepackage{setspace}\doublespacing
-
+\usepackage{setspace}
 
 \DeclareSIQualifier\carbon{C}
 \DeclareSIQualifier\sample{sample}
@@ -211,7 +210,8 @@ We suggest that considering these interactions or spatially resolved measurement
 
 
 
-
+\begin{refsection}
+%\doublespacing
 
 \hypertarget{introduction}{%
 \section{Introduction}\label{introduction}}
@@ -220,7 +220,7 @@ Mid to high-latitude peatlands are important actors in the global carbon cycle w
 Methane has 28 to 34 times the 100-year global warming potential of CO\(_2\) and therefore may be an important driver of climate warming \autocite{Myhre.2013}. Methane emissions from peatlands increase with higher water table depths, larger temperatures, and increased availability of labile organic matter (OM) \autocite{Moore.1989,Yavitt.1997,Limpens.2008}. Even though net C balances of global peatlands may be positive in the nearer future \autocite{Chaudhary.2020}, permafrost thaw and peat subsidence under warmer temperatures may favor such conditions and hence large CH\(_4\) emissions \autocite{Anisimov.2007,Koven.2011,Frolking.2011}. For this reason, it is important to refine our understanding of controls on CH\(_4\) formation in peatlands.\\
 Methane formation is an obligatory anaerobic process and thus occurs only in the (at least temporally) anoxic zone of peatlands \autocite{Limpens.2008}. It can be suppressed if thermodynamically more favorable terminal electron acceptors (TEA), such as nitrate, iron oxides, sulfate, or organic molecules, are available \autocite{Blodau.2011,Klupfel.2014,Gao.2019}. Albeit inorganic TEAs typically have a comparatively small abundance in peatlands, suppression of CH\(_4\) formation can occur due to the large abundance of organic matter (OM) that acts as TEA \autocite{Gao.2019} and can be ``recharged'' even during short oxic periods \autocite{Klupfel.2014,Lau.2016,Walpen.2018b}. Whereas dissolved organic matter (DOM) acts as electron mediator during such respiration processes \autocite{Lau.2016,Gao.2019}, particulate organic matter (POM) provides the main part of the EAC of peat and can continuously reoxidize DOM mediators and other TEAs \autocite{Gao.2019,Blodau.2007}. Consequently, understanding the electrochemical properties of peat POM and how these are driven by vegetation chemistry and decomposition are key to understand CH\(_4\) emissions from peatlands.\\
 How OM chemistry controls its capacity to accept electrons (electron accepting capacity, EAC) or donate electrons (electron donating capacity, EDC) has been analyzed mainly for DOM \autocite{Ratasuk.2007,Aeschbacher.2010,Aeschbacher.2012,Fimmen.2007,HernandezMontoya.2012,Tan.2017,Walpen.2018,LaCroix.2020}. The positive relation of the EAC to the C:H ratio and the EAC and EDC to indicators for aromaticity have been attributed to quinones and phenols representing the main contributors to the EAC and EDC, respectively \autocite{Aeschbacher.2010,Tan.2017}. In addition, sulfur and nitrogen containing functional groups can contribute to the EAC and EDC \autocite{Fimmen.2007,Ratasuk.2007,HernandezMontoya.2012} and the specific configuration of substituents and the degree of condensation control the magnitude and reversibility of the redox reactions \autocite{Ratasuk.2007,Uchimiya.2009}. Overall, there is a quite detailed conceptual understanding, which molecular structures are related to the EAC and EDC of HS and DOM.\\
-In contrast, knowledge on peat POM EAC and EDC (EAC\(_\text{POM}\) and EDC\(_\text{POM}\)) and even more on how peat POM chemistry relates to its EAC and EDC is still scarce. Few studies analyzed the EAC and EDC of POM \autocite{Keller.2013,Lau.2015,Lau.2016,Gao.2019}. These studies focused on quantifying and analyzing the reversibility of the electron transfer, but not how POM chemistry relates to its electrochemical properties \autocite{Keller.2013,Lau.2015,Lau.2016,Gao.2019}. However, the ranges of the EAC\(_\text{POM}\) and EDC\(_\text{POM}\) for peat POM are not sufficiently quantified yet. Furthermore, since POM has different chemical properties than DOM \autocite{Worrall.2017} {[}--- todo: ref{]}, it is unclear if POM electrochemical properties correlate in the same way to element ratios or molecular structures as for DOM.\\
+In contrast, knowledge on peat POM EAC and EDC (EAC\(_\text{POM}\) and EDC\(_\text{POM}\)) and even more on how peat POM chemistry relates to its EAC and EDC is still scarce. Few studies analyzed the EAC and EDC of POM \autocite{Keller.2013,Lau.2015,Lau.2016,Gao.2019}. These studies focused on quantifying and analyzing the reversibility of the electron transfer, but not how POM chemistry relates to its electrochemical properties \autocite{Keller.2013,Lau.2015,Lau.2016,Gao.2019}. However, the ranges of the EAC\(_\text{POM}\) and EDC\(_\text{POM}\) for peat POM are not sufficiently quantified yet. Furthermore, since POM has different chemical properties than DOM \autocite{Worrall.2017}, it is unclear if POM electrochemical properties correlate in the same way to element ratios or molecular structures as for DOM.\\
 ``Classical'' indicators of peat chemistry, such as element ratios and the nominal oxidation state of carbon (C\(_\text{OX}\)), tools such as van-Krevelen diagrams to interpret contribution of different OM fractions, e.g.~lignin or polysaccharides \autocite{Kim.2003}, and mid infrared spectroscopy are promising techniques to explore how peat POM chemistry relates to its EAC and EDC. These methods have been widely used to analyze peat chemistry and to analyze electrochemical properties of DOM and HS \autocite{Worrall.2017,Leifeld.2012,Bader.2018,Moore.2018,Leifeld.2020,Cocozza.2003,Artz.2008,Hodgkins.2018,Tfaily.2014,Aeschbacher.2010,Aeschbacher.2012,Tan.2017,Lv.2018,LaCroix.2020}. This would enable linking information on different OM fractions and knowledge about assignments of molecular structures to mid infrared variables with the EAC and EDC.\\
 Similarly unexplored are the relations between the degree of decomposition of peat and its EAC and EDC. Since decomposition can considerably transform peat POM and its molecular structures \autocite{Cocozza.2003}, it can have large effects on its EAC and EDC. Developing a conceptual understanding of these relations is therefore important to understand the mechanics of EAC and EDC changes during decomposition. Indicators of peat chemistry, e.g.~the N:C ratio (alternatively C:N) \autocite{Biester.2014}, C\(_\text{OX}\), and MIRS-derived humification indices \autocite{Broder.2012} have been widely used to analyze the degree of decomposition of peat \autocite{Biester.2014,Drollinger.2020}.\\
 A practically useful product of such investigations may be the development of regression models to predict peat EAC and EDC from such indicators of peat chemistry or MIRS. For HS, a close relation between the EAC and H:C ratio was found \autocite{Aeschbacher.2010,Tan.2017}. MIRS has not been used for the prediction of electrochemical properties of OM, but has proven useful for its qualitative analysis \autocite{HernandezMontoya.2012,Yuan.2018} and the prediction of other peat properties \autocite{Hodgkins.2018,Artz.2008}.
@@ -642,12 +642,16 @@ This Study was funded by the Deutsche Forschungsgemeinschaft (DFG, German Resear
 
 \printbibliography[heading=none]
 
+\end{refsection}
+
 \clearpage
 \renewcommand{\thefigure}{SI\arabic{figure}}
 \setcounter{figure}{0}
 \setcounter{page}{1}
 \setcounter{section}{1}
 \setcounter{subsection}{0}
+
+\begin{refsection}
 
 \hypertarget{supplementary-information}{%
 \section*{Supplementary Information}\label{supplementary-information}}
@@ -677,7 +681,7 @@ Different decomposition and other processes may further modify peat EAC\textsubs
 First, it is known that phenols and quinones can undergo different condensation reactions with other phenols/quinones \autocite{Hotta.2002,Johnson.2015,Bolton.2018,Zhao.2020} or nitrogen and sulfur containing functional groups \autocite{Bolton.2018,Olk.2006,Heitmann.2006,Yu.2016}. Such reactions may decrease the amount of phenols and quinones and hence decrease the EAC\textsubscript{POM} and EDC\textsubscript{POM}. Strong aerobic decomposition, intesified e.g.~by higher temperatures, higher pH values, a larger nutrient availability, and a larger fraction of labile OM, may promote such reactions because it can increase the DOM concentration \autocite{Bragazza.2007,Fenner.2011,Kang.2018c,Bowring.2020} which in turn is suggested to increase the occurrence of such condensation reactions \autocite{Hotta.2002,Johnson.2015}. However, we may not exclude that such reactions may also play a role under anoxic conditions. The negative relation of the EAC\textsubscript{POM} to polysubstituted aromatics (table \ref{tab:t-mir-sel}) may point towards such effects.\\
 Second, intense aerobic decomposition may promote the disintegration of cell-wall structures \autocite{Tsuneda.2001}. This may increase the surface accessibility of polymeric phenols and quinones to enzymes that can break them down \autocite{Tsuneda.2001}. In addition, this may increase the frequency of the mentioned condensation reactions. Disintegration of cell-wall structures may therefore be an important process in the mineralization and transformation of polymeric phenols and quinones. The relation of the EAC\textsubscript{POM} and EDC\textsubscript{POM} to free OH groups and intramolecularly bonded OH groups, respectively, may be an indicator for this (table \ref{tab:t-mir-sel}).\\
 Third, polysaccharides are typically mineralized at a faster rate than polymeric phenols and quinones, both under oxic and anoxic conditions \autocite{Benner.1984}. Since polysaccharides are not assumed to be redox-active, this may increase the EAC\textsubscript{POM} and EDC\textsubscript{POM} by residual enrichment of redox active moieties.\\
-Finally, an additional factor that might increase the variability in relations between peat chemistry and the EAC\textsubscript{POM} and EDC\textsubscript{POM} is root ingrowth in (highly) decomposed peat. Roots that are relatively rich in polymeric phenols \autocite{Moore.2007,Scheffer.2000} {[}--- todo: ref if you have{]} may increase the EDC\textsubscript{POM} and EAC\textsubscript{POM} (under anoxic conditions predominantly the EDC\textsubscript{POM}) of (highly) decomposed peat. This may result in a relative large EAC\textsubscript{POM} and/or EDC\textsubscript{POM}, in spite of the bulk peat being (highly decomposed). This may explain the relative large EDC\textsubscript{POM}:EAC\textsubscript{POM} ratio for Touxi and Dongtu. Macrofossil data would have been helpful to answer this questions, but were not available for the samples under study.\\
+Finally, an additional factor that might increase the variability in relations between peat chemistry and the EAC\textsubscript{POM} and EDC\textsubscript{POM} is root ingrowth in (highly) decomposed peat. Roots that are relatively rich in polymeric phenols \autocite{Moore.2007,Scheffer.2000} may increase the EDC\textsubscript{POM} and EAC\textsubscript{POM} (under anoxic conditions predominantly the EDC\textsubscript{POM}) of (highly) decomposed peat. This may result in a relative large EAC\textsubscript{POM} and/or EDC\textsubscript{POM}, in spite of the bulk peat being (highly decomposed). This may explain the relative large EDC\textsubscript{POM}:EAC\textsubscript{POM} ratio for Touxi and Dongtu. Macrofossil data would have been helpful to answer this questions, but were not available for the samples under study.\\
 Based on our results, it remains currently unclear if and to which extent these factors may change peat EAC\textsubscript{POM} and EDC\textsubscript{POM}, but they represent plausible mechanisms which may explain the variability to peat chemical properties, including molecular structures.
 
 \hypertarget{discussion-of-the-predictive-performance-of-the-models}{%
@@ -954,6 +958,10 @@ Figure \ref{fig:conceptual2} is a conceptual representation of the interactions 
 \hypertarget{supplementary-references}{%
 \section*{Supplementary References}\label{supplementary-references}}
 \addcontentsline{toc}{section}{Supplementary References}
+
+\printbibliography[heading=none]
+
+\end{refsection}
 
 \clearpage
 
