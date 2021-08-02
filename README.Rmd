@@ -1,0 +1,155 @@
+---
+output: github_document
+bibliography: "./inst/REFERENCES.bib"
+---
+
+<!-- README.md is generated from README.Rmd. Please edit that file -->
+
+```{r, echo = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>",
+  fig.path = "README-"
+)
+```
+
+[![Last-changedate](https://img.shields.io/badge/last%20change-`r gsub('-', '--', Sys.Date())`-brightgreen.svg)](todo) [![minimal R version](https://img.shields.io/badge/R%3E%3D-4.0.1-6666ff.svg)](https://cran.r-project.org/) [![ORCiD](https://img.shields.io/badge/ORCiD-0000--0002--3993--1182-green.svg)](http://orcid.org/0000-0002-3993-1182)
+
+# redoxpeat
+
+### Compendium URL
+
+---todo: add url
+
+### Author
+
+Henning Teickner (henning.teickner@uni-muenster.de)
+
+### Contents
+
+This repository contains the data and code for our paper:
+
+> Henning Teickner, Chuanyu Gao, Klaus-Holger Knorr (2021). _Electrochemical Properties of Peat Particulate Organic Matter on a Global Scale: Relation to Peat Chemistry and Degree of Decomposition_. Name of journal/book <https://doi.org/xxx/xxx>
+
+Our pre-print is online here:
+
+> Authors, (YYYY). _Title of paper_. Name of journal/book, Accessed `r format(Sys.Date(), "%d %b %Y")`. Online at <https://doi.org/xxx/xxx>
+
+### How to download or install
+
+You can download the compendium as a zip from from this URL: </archive/master.zip> [---todo: add url]
+
+Or you can install this compendium as an R package, redoxpeat, from GitHub with:
+
+```{r installation, eval=FALSE}
+remotes::install_github("henningte/redoxpeat")
+```
+
+### How to use
+
+#### Reproduce the analyses
+
+To reproduce the analyses for the paper, open the Rstudio project included in this research compendium and run the Rmarkdown script in `analysis/paper/001-paper-main.rmd`. To also get the final reference list, run `analysis/paper/007-latex.Rmd` afterwards.
+
+Running the whole script takes about two hours and occupies additional disk space of ~11 Gb.  
+
+Alternatively, the [Dockerfile](Dockerfile) can be used to build a Docker image from which all analyses can be reproduced. The Dockerfile ensures that all required dependencies are installed (e.g. specific R packages; this is managed using the R package [renv](https://rstudio.github.io/renv/articles/renv.html)).  
+
+The [Dockerfile](Dockerfile) provides instructions how to build a Docker image from the Dockerfile and how to run the image in a Docker container. It occupies disk space of ~7 Gb.
+
+When the Docker image runs in a container, go to `localhost:8787` in your Browser. You will find an RStudio interface where you can log in with username `rstudio` and password `rstudio`. Here you can find the Rmarkdown scripts (`redoxpeat/analysis/paper/001-paper-main.rmd` and `analysis/paper/007-latex.Rmd`) as described above.  
+
+#### Access to the R scripts
+
+All R scripts used to produce the results for the analyses are in folder [analysis/paper](analysis/paper).  
+
+#### Access to the data
+
+The compendium contains all data used during the analyses of the paper:  
+
+  1. General information on peat samples: `d`    
+  2. General information on sites: `d_sites`  
+  3. Peat electron accepting capacity (EAC) and electron donating capacity (EDC) of suspensions of freeze dried peat: `el_t0`  
+  4. Peat iron content and speciation (from acid extraction): `fe_t0`  
+  5. Peat elemental contents (C, N) and isotope signatures ($\delta^{13}$C, $\delta^{15}$N): `d_irms`  
+  6. Peat elemental contents from wavelength-dispersive X-ray fluorescence: `d_xrf`  
+  7. Peat mid infrared spectra (not preprocessed): `d_mir`  
+  8. EAC/EDC data extracted from @Aeschbacher.2012: `aeschbacher2012`  
+  9. EAC/EDC data extracted from @Tan.2017: `tan2017`  
+  10. EAC/EDC data extracted from @Walpen.2018: `walpen2018`  
+  
+There is a full documentation available for each dataset. For example, to read the documentation for `el_t0`, type:
+
+```{r data-doc, eval=FALSE}
+library(redoxpeat)
+?el_t0
+```
+
+
+#### Access to models for predicting the EAC/EDC from mid infrared spectra  
+
+Functions to get predictions from the fitted models to predict the EAC/EDC from id infrared spectra are available via the R package [irpeat](https://github.com/henningte/irpeat/).  
+
+#### Detailed overview on the files contained in the compendium
+
+- `README.md`/`README.Rmd`: Readme for the compendium.
+- `DESCRIPTION`: The R package DESCRIPTION file for the compendium.
+- `NAMESPACE`: The R package NAMESPACE file for the compendium.
+- `LICENSE.md`: Details on the license for the code in the compendium.
+- `CONTRIBUTING.md` and `CONDUCT.md`: Files with information on how to contribute to the compendium.
+- `Dockerfile`: Dockerfile to build a Docker image for the compendium.
+- `.Rbuildignore`, `.gitignore`, `.dockerignore`: Files to ignore during R package building, to ignore by Git, and to ignore while bulding a Docker image, respectively.
+- `configure`/`configure.win`: Files created with rstantools in order to integrate Stan models into the R package.
+- `renv.lock`: renv lock file (Lists all R package dependencies and versions and can be used to restore the R package library using renv). `renv.lock` was created by running `renv::snapshot()` in the R package directory and it uses the information included in the `DESCRIPTION` file.
+- `.Rprofile`: Code to run upon project start.
+- `R`, `man`, `inst`, `data-raw`, `data`, `src`: Default folders for making the R package and integration with Stan via rstatools run.
+- `analysis`: 
+    - `data`: Folder with the input data included in the R package (see scripts in `data-raw`).
+    - `scripts`:
+        - `figures`: Folder with figures for the manuscript not derived from data (conceptual figures, etc.).
+        - `templates`: Folder with LaTeX and Rmarkdown templates for the manuscript.
+        - `paper`: Folder with template files and scripts to create the manuscript.
+            - `000-preamble.tex`: LaTeX setup for the manuscript.
+            - `001-paper-main.Rmd`: Main Rmarkdown file that represents the body of code and text of the manuscript. Run this to reproduce the manuscript.
+            - `002-paper-sites.Rmd`: Child Rmarkdown file of `001-paper-main.Rmd` to process general information on  the sampling sites.
+            - `003-regression-elco.Rmd`: Child Rmarkdown file of `001-paper-main.Rmd` to compute the element ratio-based regression models to predict the EAC~POM~ and EDC~POM~.
+            - `004-regression-mirs.Rmd`: Child Rmarkdown file of `001-paper-main.Rmd` to compute the mid infrared spectra-based regression models to predict the EAC~POM~ and EDC~POM~.
+            - `005-paper-abstract-graphical.Rmd`: Rmarkdown document used to create parts of the figures for the graphical abstract.
+            - `006-paper-supplementary.Rmd`: Rmarkdown file to be run from within `001-paper-main.Rmd`. This script contains code and text for the supporting information.
+            - `007-latex.Rmd`: Rmarkdown file to be run after `001-paper-main.Rmd` to generate the full reference lists in the rendered pdf file and clean up `006-paper-supplementary.text`.
+            - `references.bib`: Literature references for the manuscript.
+            - `agujournal2018.cls`: The Agu Journal class derived from the rticles package.
+            - `trackchanges.sty`: The trackchanges TeX package needed to run the LaTeX template from rticles.
+            - `si.aux`: Auxiliary file containing the definitions for the supplementary references in `001-paper-main.tex`. This file is generated from `007-latex.Rmd`.
+            - `001-paper-main.tex`/`001-paper-main.pdf`: The LaTeX/PDF document resulting from rendering `001-paper-main.Rmd`.
+            - `006-paper-supplementary.text`/`006-paper-supplementary.pdf`: The LaTeX/PDF document resulting from rendering `006-paper-supplementary.Rmd`.
+
+### Acknowledgements
+
+For their support during sample collection/provision, we would like to thank Svenja Agethen (DE), Werner Borken (SKY I-1, SKY I-6), Tanja Broder (PBR, SKY II, LT, MK), Mariusz Gałka (LT, MK), Liam Heffernan (LP, LB), Norbert Hölzel (KR, ISH), Annkathrain Hömberg (TX, DT), Tim Moore (MB), Sindy Wagner (BB), Tim-Martin Wertebach (KR, ISH), and Zhi-Guo Yu (TX, DT).  
+Analyses of this study were carried out in the laboratory of the Institute of Landscape Ecology. Svenja Agethen and Michael Sander provided analytical support. The assistance of  Ulrike Berning-Mader, Madeleine Supper, Victoria Ratachin, and numerous student assistants is greatly acknowledged. We thank Dr. Hendrik Wetzel, Fraunhofer Institute for Applied Polymer Research, Dept. Starch Modification/Molecular Properties, Potsdam, Germany, for analysis of O and H. The workflow was reproduced by the Reproducible Research Support Service of the University of Münster.  
+This Study was funded by the Deutsche Forschungsgemeinschaft (DFG, German Research Foundation) grant no. KN 929/12-1 to Klaus-Holger Knorr; Chuanyu Gao was supported by the Youth Innovation Promotion Association CAS (No. 2020235).
+
+### How to cite
+
+Please cite this compendium as:
+
+> Henning Teickner, Chuanyu Gao, Klaus-Holger Knorr, (`r format(Sys.Date(), "%Y")`). _Compendium of R code and data for 'Electrochemical Properties of Peat Particulate Organic Matter on a Global Scale: Relation to Peat Chemistry and Degree of Decomposition'_. Accessed `r format(Sys.Date(), "%d %b %Y")`. Online at <https://doi.org/xxx/xxx>
+
+### Licenses
+
+**Text and figures :**  [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/)
+
+**Code :** See the [DESCRIPTION](DESCRIPTION) file
+
+**Data :** [CC-0](http://creativecommons.org/publicdomain/zero/1.0/) attribution requested in reuse
+
+**LaTeX templates:** The LaTeX templates are derived from the rticles R package.
+
+### Contributions
+
+We welcome contributions from everyone. Before you get started, please see our [contributor guidelines](CONTRIBUTING.md). Please note that this project is released with a [Contributor Code of Conduct](CONDUCT.md). By participating in this project you agree to abide by its terms.
+
+### References/Sources
+
+The format of this research compendium is inspired by @Marwick.2017.  

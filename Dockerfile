@@ -41,7 +41,7 @@ RUN tlmgr install xcolor pgf preview mdframed biber colortbl oberdiek mathtools 
 	minifp siunitx booktabs bigintcalc bitset gettitlestring hycolor hyperref letltxmacro \
 	pdfescape refcount rerunfilecheck stringenc uniquecounter zapfding biblatex logreq \
 	multirow wrapfig float pdflscape tabu varwidth threeparttablex ulem makecell \
-	epstopdf-pkg
+	epstopdf-pkg multibib
 
 # everysel
 

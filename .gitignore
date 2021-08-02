@@ -1,0 +1,16 @@
+.Rhistory
+.RData
+.Rproj.user
+analysis/paper/001-paper-main_cache
+*.pdf
+*.bbl
+*.bcf
+*.aux
+*.blg
+*.tar.gz
+*.log
+*.run.xml
+*.synctex.gz
+*.tex.bak
+*.cls.bak
+renv

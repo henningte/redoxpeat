@@ -56,9 +56,13 @@ output:
        includes:
           in_header: "000-preamble.tex"
        dev: cairo_pdf
-bibliography: references.bib
+# bibliography: references.bib
 header-includes: 
       - \usepackage{soulutf8}  # For UTF8 chars in TrackChanges
+      - \usepackage{xr}
+      - \externaldocument[si-]{006-paper-supplementary}
+      - \usepackage{multibib}
+      - \newcites{si}{References for the Supporting Information}
 # AGU recommends using the trackchanges LaTeX package in the edition process
 # which is available from this link:
 # https://publications.agu.org/files/2019/02/January-14-2019-latex-templates.zip
@@ -98,6 +102,7 @@ library(sf)
 library(rgeos)
 library(rnaturalearth)
 library(rnaturalearthdata)
+library(bib2df)
 
 # plot theme
 ggplot2::theme_set(ggplot2::theme_classic() + 
@@ -713,13 +718,13 @@ Values of EAC and EDC were determined in MER and MEO, respectively, by integrati
 Strictly, the obtained EAC and EDC values are the combined EAC and EDC of the POM, DOM, and dissolved inorganic ions and inorganic particles that could be reduced and oxidized, respectively. Prior studies of organic rich sediments and peat samples suggest that dissolved inorganic ions and DOM have a negligible contribution to the EAC and EDC of bulk peat material (\textasciitilde1\%) [@Lau.2015; @Gao.2019] and therefore we assume that our measurements are representative for the solid phase.  
 Even though POM is assumed to be the dominant contributor to the EAC and EDC of organic rich sediments such as peat [@Lau.2015; @Gao.2019], solid iron phases can contribute to the EAC and EDC of peat as measured by MER/MEO [@Lau.2015]. We therefore corrected the measured EAC and EDC values for contributions of Fe$^{2+}$ (each mol contributing one mol electrons to the EDC) and Fe$^{3+}$ (each mol contributing one mol electrons to the EAC) [@Lau.2015; @Gao.2019]. To this end, we extracted iron by adding \SI{4}{\milli\liter} \SI{1}{\mol\per\L} HCl to \SI{1}{\milli\liter} of each sample (in some cases less material had to be used), letting the suspensions rest for \SI{72}{\hour} in the dark, and filtering the solution through \SI{0.22}{\micro\meter} Nylon syringe filters. Concentrations of Fe$^{2+}$ and Fe$^{3+}$ in the filtrate were measured spectrophotometrically using the 1,10–phenanthroline method [@Tamura.1974] and from this, we computed the contributions of iron to the EAC (EAC\textsubscript{Fe$^{3+}$}) and EDC (EDC\textsubscript{Fe$^{2+}$}), respectively. The EAC\textsubscript{POM} was then computed by subtracting EAC\textsubscript{Fe$^{3+}$} from the measured EAC and the EDC\textsubscript{POM} by subtracting EDC\textsubscript{Fe$^{2+}$} from the measured EDC [@Lau.2015].  
 There are several known issues with this procedure. First, acid extraction may not extract all redox active iron moieties [@Lau.2016]. Second, during acid extraction, the redox equilibrium between iron and OM is shifted and Fe$^{3+}$ may in part be reduced to Fe$^{2+}$ [@Lau.2015]. Consequently, the contribution of iron to the EDC is typically overestimated, whereas the contribution of iron to the EAC is typically underestimated [@Lau.2015].  
-The first issue may be negligible for most samples because peat typically contains few mineral particles and hence most iron typically is acid extractable (supporting figure \ref{fig:p-fe-xrf-comparison-res}). However, we cannot fully exclude that more iron moieties than that accessible via acid extraction contributed to the EAC and EDC for samples with larger iron contents (supporting figure \ref{fig:p-fe-xrf-comparison-res}). The third issue probably affected our calculated EAC\textsubscript{POM} and EDC\textsubscript{POM} values. One indication for this is that `r nrow(el_t0_negative)` EDC\textsubscript{POM} values were negative (minimum: \SI{`r round(min(el_t0_negative$edc_c), 0)`}{\micro\mol\per\gram\carbon}). We therefore assume that the calculated EAC\textsubscript{POM} and EDC\textsubscript{POM} values are biased for samples with high iron content and considered this during data analysis and interpretation.  
-We finally report the EAC\textsubscript{POM} and EDC\textsubscript{POM} relative to the C mass of the measured sample (mass of C in the POM suspension aliquot). Moreover, we computed the EAC\textsubscript{POM} and EDC\textsubscript{POM} relative to the total mass of the sample for comparison with values reported in other studies. For each sample, we computed average EAC\textsubscript{POM} and EDC\textsubscript{POM} values and respective standard deviations from the replicate measurements. During this, we discarded one EAC replicate measurement for which we assumed measurement errors because it differed extremely (more than $\SI{1000}{\micro\mol\per\gram\carbon}$) from the remaining replicate measurements for the same sample (supporting figure \ref{fig:el-preprocessing-p1-res}).
+The first issue may be negligible for most samples because peat typically contains few mineral particles and hence most iron typically is acid extractable (supporting figure \ref{si-fig:p-fe-xrf-comparison-res}). However, we cannot fully exclude that more iron moieties than that accessible via acid extraction contributed to the EAC and EDC for samples with larger iron contents (supporting figure \ref{si-fig:p-fe-xrf-comparison-res}). The third issue probably affected our calculated EAC\textsubscript{POM} and EDC\textsubscript{POM} values. One indication for this is that `r nrow(el_t0_negative)` EDC\textsubscript{POM} values were negative (minimum: \SI{`r round(min(el_t0_negative$edc_c), 0)`}{\micro\mol\per\gram\carbon}). We therefore assume that the calculated EAC\textsubscript{POM} and EDC\textsubscript{POM} values are biased for samples with high iron content and considered this during data analysis and interpretation.  
+We finally report the EAC\textsubscript{POM} and EDC\textsubscript{POM} relative to the C mass of the measured sample (mass of C in the POM suspension aliquot). Moreover, we computed the EAC\textsubscript{POM} and EDC\textsubscript{POM} relative to the total mass of the sample for comparison with values reported in other studies. For each sample, we computed average EAC\textsubscript{POM} and EDC\textsubscript{POM} values and respective standard deviations from the replicate measurements. During this, we discarded one EAC replicate measurement for which we assumed measurement errors because it differed extremely (more than $\SI{1000}{\micro\mol\per\gram\carbon}$) from the remaining replicate measurements for the same sample (supporting figure \ref{si-fig:el-preprocessing-p1-res}).
 
 ## Element contents
 
 We analyzed concentrations of C, N, and S for all samples by catalytic combustion using an elemental analyzer (EA 3000, Eurovector, Pavia, Italy). Concentrations of H and O were determined based on the modified Dumas Method, using an CHNS/O analyzer (FlashEA 1112, Thermo Fisher Scientific, Delft, The Netherlands). The nominal oxidation state of C (C$_\textrm{ox}$) was computed from the contents of C, H, N, and O [@Masiello.2008; @Worrall.2016b].  
-Total concentrations of other elements (Fe, P and others; see supporting table \ref{tab:t-cor-el-xrf} for a full list of measured elements) were determined by wavelength dispersive X-ray fluorescence spectroscopy (WD-XRF; ZSX Primus II, Rigaku, Tokyo, Japan) calibrated with a set of 15 reference materials, consisting of certified plant, peat, and sediment materials, and 5 in-house working standards. Analyses were done on $\SI{500}{\milli\g}$ of ground, powdered sample, pressed to a $\SI{13}{\milli\m}$ pellet (without pelleting aids) at a load of approximately \SI{7}{\tonne}. For few samples, S contents were derived from the WD-XRF data.
+Total concentrations of other elements (Fe, P and others; see supporting table \ref{si-tab:t-cor-el-xrf} for a full list of measured elements) were determined by wavelength dispersive X-ray fluorescence spectroscopy (WD-XRF; ZSX Primus II, Rigaku, Tokyo, Japan) calibrated with a set of 15 reference materials, consisting of certified plant, peat, and sediment materials, and 5 in-house working standards. Analyses were done on $\SI{500}{\milli\g}$ of ground, powdered sample, pressed to a $\SI{13}{\milli\m}$ pellet (without pelleting aids) at a load of approximately \SI{7}{\tonne}. For few samples, S contents were derived from the WD-XRF data.
 
 ## Mid infrared spectroscopy
 
@@ -732,8 +737,8 @@ Two transformed versions of the spectra were created for the computation of MIRS
 ### Balancing the analytical bias in EAC\textsubscript{POM} and EDC\textsubscript{POM} values
 
 As mentioned in the previous section, the EAC\textsubscript{POM} and EDC\textsubscript{POM} values computed from measured EAC and EDC values and acid extracted iron ion contents probably are biased, especially for samples with high iron content [@Lau.2015; @Lau.2016]. Since we are interested in electrochemical properties of POM, this bias must be considered during all data analysis steps. We aimed to do this first by quantifying the maximum potential contribution of iron to the EAC and EDC, second, by creating a filtered data set for each the EAC\textsubscript{POM} and EDC\textsubscript{POM} containing only data where the maximum potential contribution of iron to the EAC and EDC was $\le$\SI{100}{\micro\mol\per\gram\carbon}, respectively, and third, performing all analyses for the filtered data set. Analyses for the unfiltered data set can be found in the supplementary information.  
-The maximum potential contribution of iron to the EAC and EDC was determined as the total concentration of iron in the acid extract (sum of the concentrations of Fe$^{2+}$ and Fe$^{3+}$). We assumed that non-extracted iron is redox inactive and hence this total iron concentration reflects the maximum potential contribution of iron to either the EAC or EDC, irrespective of the initial redox state and redox state changes during the acid extraction. This assumption is true for samples with low total iron contents, but cannot be validated for samples with larger iron contents (supporting figure \ref{fig:p-fe-xrf-comparison-res}) [@Lau.2016]. An overview on the maximum potential contribution of iron to the EAC and EDC across all samples computed from the acid extractable iron content can be found in supporting figure \ref{fig:p-fe-contribution-abs-res}. The threshold of $\le$\SI{100}{\micro\mol\per\gram\carbon} was chosen to balance the reduction in the analytical bias in the filtered data and the reduction in sample size, resulting in sample sizes of `r sum(d$index_eac[!is.na(d$C)])` for the EAC and EDC. As a result, there was only a constant offset bias between corrected and uncorrected values for the EAC and EDC (supporting figure \ref{fig:p-fe-corrected-uncorrected-res}).  
-In general, measured EAC and EDC values typically are much larger than \SI{100}{\micro\mol\per\gram\carbon} and samples with large acid extracted (and total) iron contents typically have a small EAC and EDC (supporting figures \ref{fig:p-fe-corrected-uncorrected-res} and \ref{fig:p-fe-raw-iron}), suggesting that the maximum bias is probably low. Therefore we assume that it is unlikely that the remaining bias had a large influence on the results. As mentioned above, we cannot, however, fully exclude contributions of non-acid extractable iron minerals to the EAC and EDC. We also note that choosing a tighter filter threshold is likely to cause selection bias since samples with high acid extracted iron content tend to be more decomposed (supporting figure \ref{fig:p-fe-decomposition-res}). 
+The maximum potential contribution of iron to the EAC and EDC was determined as the total concentration of iron in the acid extract (sum of the concentrations of Fe$^{2+}$ and Fe$^{3+}$). We assumed that non-extracted iron is redox inactive and hence this total iron concentration reflects the maximum potential contribution of iron to either the EAC or EDC, irrespective of the initial redox state and redox state changes during the acid extraction. This assumption is true for samples with low total iron contents, but cannot be validated for samples with larger iron contents (supporting figure \ref{si-fig:p-fe-xrf-comparison-res}) [@Lau.2016]. An overview on the maximum potential contribution of iron to the EAC and EDC across all samples computed from the acid extractable iron content can be found in supporting figure \ref{si-fig:p-fe-contribution-abs-res}. The threshold of $\le$\SI{100}{\micro\mol\per\gram\carbon} was chosen to balance the reduction in the analytical bias in the filtered data and the reduction in sample size, resulting in sample sizes of `r sum(d$index_eac[!is.na(d$C)])` for the EAC and EDC. As a result, there was only a constant offset bias between corrected and uncorrected values for the EAC and EDC (supporting figure \ref{si-fig:p-fe-corrected-uncorrected-res}).  
+In general, measured EAC and EDC values typically are much larger than \SI{100}{\micro\mol\per\gram\carbon} and samples with large acid extracted (and total) iron contents typically have a small EAC and EDC (supporting figures \ref{si-fig:p-fe-corrected-uncorrected-res} and \ref{si-fig:p-fe-raw-iron}), suggesting that the maximum bias is probably low. Therefore we assume that it is unlikely that the remaining bias had a large influence on the results. As mentioned above, we cannot, however, fully exclude contributions of non-acid extractable iron minerals to the EAC and EDC. We also note that choosing a tighter filter threshold is likely to cause selection bias since samples with high acid extracted iron content tend to be more decomposed (supporting figure \ref{si-fig:p-fe-decomposition-res}). 
 
 
 ### EAC\textsubscript{POM} and EDC\textsubscript{POM} variability
@@ -1646,7 +1651,7 @@ p_mir_cor <-
 # get results from child document
 ```
 
-We used regression models to analyze if peat EAC\textsubscript{POM} and EDC\textsubscript{POM} can be predicted from a linear combination of individual element ratios (H:C, O:C, N:C, S:C). Different regression approaches were investigated: (1) including only the H:C and O:C ratio, and (2) including all four element ratios. We used Bayesian hierarchical models to consider the uncertainties of the replicate measurements and that these were different for different samples (supporting figure \ref{fig:p-reg-distogram-res} provides an overview on the model structure). For the EAC\textsubscript{POM} and EDC\textsubscript{POM} values (both individual measurements and replicate measurement averages) we assumed a Gamma distribution with log-link function. Individual replicate measurements with EDC\textsubscript{POM} values $\le \SI{0}{\micro\mol\per\gram\carbon}$ were set to \SI{0}{\micro\mol\per\gram\carbon} for this. Since the absolute values of these measurements is small in comparison to the median EDC\textsubscript{POM} values, we assumed that this causes no bias in our analyses. Further details on the specification of the element ratio-based models can be found in the supporting information.  
+We used regression models to analyze if peat EAC\textsubscript{POM} and EDC\textsubscript{POM} can be predicted from a linear combination of individual element ratios (H:C, O:C, N:C, S:C). Different regression approaches were investigated: (1) including only the H:C and O:C ratio, and (2) including all four element ratios. We used Bayesian hierarchical models to consider the uncertainties of the replicate measurements and that these were different for different samples (supporting figure \ref{si-fig:p-reg-distogram-res} provides an overview on the model structure). For the EAC\textsubscript{POM} and EDC\textsubscript{POM} values (both individual measurements and replicate measurement averages) we assumed a Gamma distribution with log-link function. Individual replicate measurements with EDC\textsubscript{POM} values $\le \SI{0}{\micro\mol\per\gram\carbon}$ were set to \SI{0}{\micro\mol\per\gram\carbon} for this. Since the absolute values of these measurements is small in comparison to the median EDC\textsubscript{POM} values, we assumed that this causes no bias in our analyses. Further details on the specification of the element ratio-based models can be found in the supporting information.  
 Additionally, we computed regression models to analyze the joint relation of molecular structures derived from MIRS to the EAC\textsubscript{POM} and EDC\textsubscript{POM}. For this, we used partial least squares regression (PLSR) and Bayesian regularization [e.g. @Artz.2008; @Ferragina.2015]. Since different preprocessing approaches for MIRS can affect the predictive performance of models [@Engel.2013], we computed not only one regression model for each the EAC\textsubscript{POM} and EDC\textsubscript{POM}, but four, using either non-derived spectra or first derivative spectra as input data, and PLSR or Bayesian regularization, respectively. In addition, for the EDC\textsubscript{POM}, we observed biases and tried to reduce these by dividing the EDC\textsubscript{POM} by HI\textsubscript{1630/1090}.   
 We applied Bayesian projection [@Piironen.2020] on all MIRS-based models to facilitate their interpretation. Bayesian projection seeks to find a reduced model that is similar to the full model in terms of its posterior distribution within some defined tolerance threshold [@Piironen.2020]. This allowed us to establish more direct links between the underlying molecular structures and the EAC\textsubscript{POM} and EDC\textsubscript{POM}. Further details on the projection approach are described in the supporting information.  
 We also wanted to analyze if regression models using element ratios or mid infrared variables may be used to predict peat EAC\textsubscript{POM} and EDC\textsubscript{POM}. For this, we estimated the predictive accuracy using 10-fold cross-validation (CV) [@Roberts.2017] and the root mean square error (RMSE) as performance metric [@Bellocchi.2010]. As we did not observe large deviations between alternative regression models, we cross-validated only the regression models containing all element ratios (H:C, O:C, N:C, S:C) and the MIRS-based models using Bayesian regularization and non-derived spectra. The RMSE was computed between the MCMC draws for predictions of the regression models for new observations and MCMC draws for estimates of the samples' average EAC\textsubscript{POM} or EDC\textsubscript{POM}, respectively. This allowed us to consider the uncertainties of the repeated measurements during CV, and to compute a probability distribution of the RMSE values based on the CV uncertainty, as well as the models' uncertainties.  
@@ -1694,7 +1699,7 @@ p_y_yhat <-
 ## EAC\textsubscript{POM} and EDC\textsubscript{POM}
 
 Our peat samples' average EAC\textsubscript{POM} ranges between `r round(min(as.numeric(d$eac_c1[d$index_eac]), na.rm = TRUE), 0)` and \SI{`r round(max(as.numeric(d$eac_c1[d$index_eac]), na.rm = TRUE), 0)`}{\micro\mol\per\g\carbon} and their EDC\textsubscript{POM} between `r round(min(as.numeric(d$edc_c1[d$index_edc]), na.rm = TRUE), 0)` and \SI{`r round(max(as.numeric(d$edc_c1[d$index_edc]), na.rm = TRUE), 0)`}{\micro\mol\per\g\carbon} (after filtering; see table \ref{tab:t-ranges-sites} for site-specific values). The EAC\textsubscript{POM} is typically larger than the EDC\textsubscript{POM}, with few exceptions, and both are loosely positively related ($\rho=$ `r round(cor(purrr::map_dbl(reg_base_eac_summary, mean), purrr::map_dbl(reg_base_edc_summary, mean)), 2)`), as shown in figure \ref{fig:p-el-comparison-res} b.  
-The EAC\textsubscript{POM} and EDC\textsubscript{POM} vary considerably between different sites and the depth-related within-site variability is also large (figure \ref{fig:p-el-comparison-res} a). In addition, no general depth-related pattern is visible: For some peat cores, the uppermost sample had the largest EAC\textsubscript{POM} or EDC\textsubscript{POM}, for others the deepest, and for some the intermediate samples. The same figure also shows that the EAC\textsubscript{POM} and EDC\textsubscript{POM} can change independently or even inversely to each other along the peat profile. Finally, our specific sites did not show distinct patterns in their EAC\textsubscript{POM} and EDC\textsubscript{POM} to differentiate bogs and fens (supporting figure \ref{fig:el-comparison-peatland-types-res}).  
+The EAC\textsubscript{POM} and EDC\textsubscript{POM} vary considerably between different sites and the depth-related within-site variability is also large (figure \ref{fig:p-el-comparison-res} a). In addition, no general depth-related pattern is visible: For some peat cores, the uppermost sample had the largest EAC\textsubscript{POM} or EDC\textsubscript{POM}, for others the deepest, and for some the intermediate samples. The same figure also shows that the EAC\textsubscript{POM} and EDC\textsubscript{POM} can change independently or even inversely to each other along the peat profile. Finally, our specific sites did not show distinct patterns in their EAC\textsubscript{POM} and EDC\textsubscript{POM} to differentiate bogs and fens (supporting figure \ref{si-fig:el-comparison-peatland-types-res}).  
 Figure \ref{fig:p-el-comparison-res} C compares EAC\textsubscript{POM} and EDC\textsubscript{POM} for our peat samples to those for different HS and peat DOM samples obtained from different studies [@Aeschbacher.2012; @Tan.2017; @Walpen.2018]. Most HS and peat DOM samples have a clearly larger EAC and EDC, whereby mineral soil HS [@Tan.2017] seem to have intermediate values relative to our measurements on the one side and the larger values for various IHSS reference samples [@Aeschbacher.2012] and peat DOM samples [@Walpen.2018] on the other side.
 
 ```{r t-ranges-sites}
@@ -1737,8 +1742,8 @@ cowplot::plot_grid(
 
 ## Relation to Bulk Chemical Properties
 
-No single bulk chemical property is strongly related to either the EAC\textsubscript{POM}, EDC\textsubscript{POM} or EDC\textsubscript{POM}:EAC\textsubscript{POM} ratio, except for the N:C ratio which is relatively strongly related to the EDC\textsubscript{POM} ($\rho=$ `r round(d_cor_fe_edc["edc_c1", "N:C"], 2)`), and the H:C ratio which is related to the EAC\textsubscript{POM} ($\rho=$ `r round(d_cor_fe_eac["eac_c1", "H:C"], 2)`) (supporting figure \ref{fig:p-el-variables1-res}). The EDC\textsubscript{POM}:EAC\textsubscript{POM} ratio is related to the N:C ratio ($\rho=$ `r round(d_cor_fe_edc["edc_c1:eac_c1", "N:C"], 2)`). All other Pearson correlation coefficients between either the EAC\textsubscript{POM} or EDC\textsubscript{POM} and any of the variables we considered is not larger than `r round(max(as.numeric(c(d_cor_fe_eac["eac_c1", -match(c("edc_c1", "eac_c1", "edc_c1:eac_c1", "H:C"), colnames(d_cor_fe_eac))], d_cor_fe_edc["edc_c1", -match(c("edc_c1", "eac_c1", "edc_c1:eac_c1", "N:C"), colnames(d_cor_fe_edc))]))), 2)` or smaller than `r round(min(as.numeric(c(d_cor_fe_eac["eac_c1", -match(c("edc_c1", "eac_c1", "edc_c1:eac_c1", "H:C"), colnames(d_cor_fe_eac))], d_cor_fe_edc["edc_c1", -match(c("edc_c1", "eac_c1", "edc_c1:eac_c1", "N:C"), colnames(d_cor_fe_edc))]))), 2)`.  
-The relative weak correlations are not due to non-linear relations, but due to a large variability within and between sites (supporting figure \ref{fig:p-el-variables1-res}). For the EAC\textsubscript{POM}, this variability is especially large for samples with average N:C ratio, medium to large O:C ratio, large C$_\text{OX}$, and medium HI$_\text{1630/1090}$. For the EDC\textsubscript{POM}, the variability is large for medium to small O:C ratio, medium to small C$_\text{OX}$, and medium HI$_\text{1630/1090}$. For the EDC\textsubscript{POM}:EAC\textsubscript{POM} ratio, the variability is large for small to medium N:C ratios and HI$_\text{1630/1090}$.  
+No single bulk chemical property is strongly related to either the EAC\textsubscript{POM}, EDC\textsubscript{POM} or EDC\textsubscript{POM}:EAC\textsubscript{POM} ratio, except for the N:C ratio which is relatively strongly related to the EDC\textsubscript{POM} ($\rho=$ `r round(d_cor_fe_edc["edc_c1", "N:C"], 2)`), and the H:C ratio which is related to the EAC\textsubscript{POM} ($\rho=$ `r round(d_cor_fe_eac["eac_c1", "H:C"], 2)`) (supporting figure \ref{si-fig:p-el-variables1-res}). The EDC\textsubscript{POM}:EAC\textsubscript{POM} ratio is related to the N:C ratio ($\rho=$ `r round(d_cor_fe_edc["edc_c1:eac_c1", "N:C"], 2)`). All other Pearson correlation coefficients between either the EAC\textsubscript{POM} or EDC\textsubscript{POM} and any of the variables we considered is not larger than `r round(max(as.numeric(c(d_cor_fe_eac["eac_c1", -match(c("edc_c1", "eac_c1", "edc_c1:eac_c1", "H:C"), colnames(d_cor_fe_eac))], d_cor_fe_edc["edc_c1", -match(c("edc_c1", "eac_c1", "edc_c1:eac_c1", "N:C"), colnames(d_cor_fe_edc))]))), 2)` or smaller than `r round(min(as.numeric(c(d_cor_fe_eac["eac_c1", -match(c("edc_c1", "eac_c1", "edc_c1:eac_c1", "H:C"), colnames(d_cor_fe_eac))], d_cor_fe_edc["edc_c1", -match(c("edc_c1", "eac_c1", "edc_c1:eac_c1", "N:C"), colnames(d_cor_fe_edc))]))), 2)`.  
+The relative weak correlations are not due to non-linear relations, but due to a large variability within and between sites (supporting figure \ref{si-fig:p-el-variables1-res}). For the EAC\textsubscript{POM}, this variability is especially large for samples with average N:C ratio, medium to large O:C ratio, large C$_\text{OX}$, and medium HI$_\text{1630/1090}$. For the EDC\textsubscript{POM}, the variability is large for medium to small O:C ratio, medium to small C$_\text{OX}$, and medium HI$_\text{1630/1090}$. For the EDC\textsubscript{POM}:EAC\textsubscript{POM} ratio, the variability is large for small to medium N:C ratios and HI$_\text{1630/1090}$.  
 EAC\textsubscript{POM} and EDC\textsubscript{POM} values are large along a gradient with large O:C and large H:C ratio at the one end and small O:C and small H:C ratio at the other end (figure \ref{fig:p-el-ch-co1-res}). Conversely, samples with small O:C ratio, but large H:C ratio have the smallest EAC\textsubscript{POM} and EDC\textsubscript{POM}. Whilst this gradient is a general pattern, there are some samples with smaller and larger EAC\textsubscript{POM} and EDC\textsubscript{POM} values than could be expected based on the described gradient. For instance the two samples from SKY I-1 at intermediate depth have a surprisingly small EAC\textsubscript{POM} and EDC\textsubscript{POM}, and samples from SKY II and Martinskapelle (MK) have a large EAC\textsubscript{POM} and EDC\textsubscript{POM} for their small O:C and large H:C ratio (figure \ref{fig:p-el-ch-co1-res}).  
 To compare these patterns to those for HS, we present the same variables in figure \ref{fig:p-el-ch-co1-res} B, but including various IHSS reference HS and measured EAC and EDC values from @Aeschbacher.2012 for some of these. The H:C values of the HS are separated by ~0.5 from that of the peat samples, whereas there is a rather large overlap in the O:C ratio between both sample groups. One exception is the Pony Lake Fulvic Acid (FA) that has a H:C ratio similar to our peat samples. Overall, the HS samples, with their larger EAC and EDC, extent the gradient we observed for the peat samples.
 We additionally labeled regions according to OM fractions typically delineated in van-Krevelen diagrams [@Kim.2003]. The peat samples spread between the cellulose and lignin regions, whereas the HS samples are shifted more towards the lignin region due to their small H:C ratios (except Pony Lake FA) (figure \ref{fig:p-el-ch-co1-res} b).
@@ -1760,9 +1765,9 @@ For the EAC\textsubscript{POM}, neither the N:C ($\beta_\text{N:C}\in$[$`r round
 
 ## Relation to Molecular Structures
 
-MIR variables typically assigned to labile OM fractions tend to be positively related to the EAC\textsubscript{POM} and EDC\textsubscript{POM} and variables typically assigned to more recalcitrant OM fractions tend to be negatively related to the EAC\textsubscript{POM} and EDC\textsubscript{POM} (supporting figure \ref{fig:p-mir-cor-res}). This is evident from positive correlations with MIR variables representing cellulose C-O stretching, phenol C-O stretching and O-H bending, carbonyl C=O stretching, cellulose and phenol O-H stretching and negative correlations with MIR variables representing aromatic C=C stretching, C-H bending, and lipid C-H stretching [@Stuart.2005; @Cocozza.2003; @Artz.2008; @Kubo.2005; @Schmidt.2006]. However, the correlations are overall relatively small (maximum absolute correlation $=`r round(max(abs(d_mir_cor[, "values"])), 2)`$).  
+MIR variables typically assigned to labile OM fractions tend to be positively related to the EAC\textsubscript{POM} and EDC\textsubscript{POM} and variables typically assigned to more recalcitrant OM fractions tend to be negatively related to the EAC\textsubscript{POM} and EDC\textsubscript{POM} (supporting figure \ref{si-fig:p-mir-cor-res}). This is evident from positive correlations with MIR variables representing cellulose C-O stretching, phenol C-O stretching and O-H bending, carbonyl C=O stretching, cellulose and phenol O-H stretching and negative correlations with MIR variables representing aromatic C=C stretching, C-H bending, and lipid C-H stretching [@Stuart.2005; @Cocozza.2003; @Artz.2008; @Kubo.2005; @Schmidt.2006]. However, the correlations are overall relatively small (maximum absolute correlation $=`r round(max(abs(d_mir_cor[, "values"])), 2)`$).  
 The general patterns in the correlation spectra for the EAC\textsubscript{POM} are similar to those for the EDC\textsubscript{POM}. Some deviations are visible: For example the EDC\textsubscript{POM} has a more negative relation to aromatic C=C stretching, and a more positive relation to cellulose and phenol O-H stretching, whereas the EAC\textsubscript{POM} is more strongly related to carbonyl C=O stretching.  
-Variable selection during the regression analysis identified `r cal_br_proj_fe$d_cal_eac_fe$cal_vs_ss` and `r cal_br_proj_fe$d_cal_edc_fe$cal_vs_ss` variables as sufficient to predict the EAC\textsubscript{POM} and EDC\textsubscript{POM}, respectively: The EAC\textsubscript{POM} is positively related to carbonyl group C=O stretching and tends to be negatively related to lipid C-H stretching, O-H stretching of unbonded OH groups, and C-H bending of (potentially polysubstituted) aromatics (table \ref{tab:t-mir-sel}). For lipid C-H stretching and unbonded O-H stretching, two directly neighboring variables with partly contrasting coefficients (positive and negative) were selected. However, their joint relation to the EAC\textsubscript{POM} is clearly negative (supporting figure \ref{fig:p-partial-dependence-res}). The EDC\textsubscript{POM} tends to be positively related to O-H stretching of intramoleculary bonded OH groups, probably of cellulose and phenols, and tends to be negatively related to secondary amide N–H bending and C–N stretching (table \ref{tab:t-mir-sel}).  
+Variable selection during the regression analysis identified `r cal_br_proj_fe$d_cal_eac_fe$cal_vs_ss` and `r cal_br_proj_fe$d_cal_edc_fe$cal_vs_ss` variables as sufficient to predict the EAC\textsubscript{POM} and EDC\textsubscript{POM}, respectively: The EAC\textsubscript{POM} is positively related to carbonyl group C=O stretching and tends to be negatively related to lipid C-H stretching, O-H stretching of unbonded OH groups, and C-H bending of (potentially polysubstituted) aromatics (table \ref{tab:t-mir-sel}). For lipid C-H stretching and unbonded O-H stretching, two directly neighboring variables with partly contrasting coefficients (positive and negative) were selected. However, their joint relation to the EAC\textsubscript{POM} is clearly negative (supporting figure \ref{si-fig:p-partial-dependence-res}). The EDC\textsubscript{POM} tends to be positively related to O-H stretching of intramoleculary bonded OH groups, probably of cellulose and phenols, and tends to be negatively related to secondary amide N–H bending and C–N stretching (table \ref{tab:t-mir-sel}).  
 Overall, this indicates that the EAC\textsubscript{POM} is positively related to carbonyl groups and negatively related to structures more abundant in decomposed peat (lipids, aromatics, unbonded OH groups), and the EDC\textsubscript{POM} is positively related to structures more abundant in undecomposed peat (intramolecular OH bonds in cellulose and phenols).  
 
 ```{r t-mir-sel}
@@ -1807,8 +1812,8 @@ dplyr::bind_rows(
 
 ## Predictive Accuracy of the MIRS-Based Models in Comparison to Regression Models Based on Element Ratios 
 
-The predictive performances of the different modeling approaches (MIRS-based vs element ratio-based) do not differ considerably and are several times larger than the standard deviation of the distributions for the respective replicate measurements. The MIRS-based models had a median 10-fold CV-RMSE $`r round(abs(median(cal_cv_eac_rmse[, "rmse", drop = TRUE]) - median(reg_cv_eac2_rmse[, "rmse", drop = TRUE])), 1)`$ and $\SI{`r round(abs(median(cal_cv_edc_rmse[, "rmse", drop = TRUE]) - median(reg_cv_edc2_rmse[, "rmse", drop = TRUE])), 1)`}{\micro\mol\per\g\carbon}$ smaller and larger than the element ratio-based models for the EAC\textsubscript{POM} and EDC\textsubscript{POM}, respectively. The models with the least median 10-fold CV-RMSE for each variable had a 10-fold CV-RMSE of `r round(median(cal_cv_eac_rmse$rmse), 1)` [`r round(redoxpeat::get_lower_ci(cal_cv_eac_rmse$rmse, 0.95), 1)`, `r round(redoxpeat::get_upper_ci(cal_cv_eac_rmse$rmse, 0.95), 1)`] and `r round(median(reg_cv_edc2_rmse$rmse), 1)` [`r round(redoxpeat::get_lower_ci(reg_cv_edc2_rmse$rmse, 0.95), 1)`, `r round(redoxpeat::get_upper_ci(reg_cv_edc2_rmse$rmse, 0.95), 1)`] $\si{\micro\mol\per\g\carbon}$ for the EAC\textsubscript{POM} and EDC\textsubscript{POM}, respectively. In comparison to this, the median standard deviation from the estimated distribution for the measured values is `r round(median(purrr::map_dbl(reg_base_eac_summary, sd)), 1)` and $\SI{`r round(median(purrr::map_dbl(reg_base_edc_summary, sd)), 1)`}{\micro\mol\per\g\carbon}$. In spite of the similar predictive performance of both models for the EAC\textsubscript{POM}, the MIRS-based model is clearly less biased than the element ratio-based model, whereas both models for the EDC\textsubscript{POM} are clearly biased (figure \ref{fig:p-y-yhat-res}).  
-Using derivative spectra, data subsets, or PLSR instead of Bayesian regularization neither yield considerably worse, nor better models in terms of their training predictive accuracy (supporting figure \ref{fig:p-cal-elpd-res}). <!--The projected models based on the PLSR reference model comprise more variables than that based on Bayesian regularization for the EAC\textsubscript{POM} (`r sapply(cal_plsr_proj_fe, function(x) x$cal_vs_ss)[[1]]` in comparison to `r sapply(cal_br_proj_fe, function(x) x$cal_vs_ss)[[1]]` for non-derived spectra). For the EDC\textsubscript{POM}, the differences are smaller.-->
+The predictive performances of the different modeling approaches (MIRS-based vs element ratio-based) do not differ considerably and are several times larger than the standard deviation of the distributions for the respective replicate measurements. The MIRS-based models had a median 10-fold CV-RMSE $`r round(abs(median(cal_cv_eac_rmse[, "rmse", drop = TRUE]) - median(reg_cv_eac2_rmse[, "rmse", drop = TRUE])), 1)`$ and $\SI{`r round(abs(median(cal_cv_edc_rmse[, "rmse", drop = TRUE]) - median(reg_cv_edc2_rmse[, "rmse", drop = TRUE])), 1)`}{\micro\mol\per\g\carbon}$ smaller and larger than the element ratio-based models for the EAC\textsubscript{POM} and EDC\textsubscript{POM}, respectively. The models with the least median 10-fold CV-RMSE for each variable had a 10-fold CV-RMSE of `r round(median(cal_cv_eac_rmse$rmse), 1)` [`r round(redoxpeat::get_lower_ci(cal_cv_eac_rmse$rmse, 0.95), 1)`, `r round(redoxpeat::get_upper_ci(cal_cv_eac_rmse$rmse, 0.95), 1)`] and `r round(median(reg_cv_edc2_rmse$rmse), 1)` [`r round(redoxpeat::get_lower_ci(reg_cv_edc2_rmse$rmse, 0.95), 1)`, `r round(redoxpeat::get_upper_ci(reg_cv_edc2_rmse$rmse, 0.95), 1)`] $\si{\micro\mol\per\g\carbon}$ for the EAC\textsubscript{POM} and EDC\textsubscript{POM}, respectively. In comparison to this, the median standard deviation from the estimated distribution for the measured values is `r round(median(purrr::map_dbl(reg_base_eac_summary, sd)), 1)` and $\SI{`r round(median(purrr::map_dbl(reg_base_edc_summary, sd)), 1)`}{\micro\mol\per\g\carbon}$. In spite of the similar predictive performance of both models for the EAC\textsubscript{POM}, the MIRS-based model is clearly less biased than the element ratio-based model, whereas both models for the EDC\textsubscript{POM} are clearly biased (supporting figure \ref{si-fig:p-y-yhat-res}).  
+Using derivative spectra, data subsets, or PLSR instead of Bayesian regularization neither yield considerably worse, nor better models in terms of their training predictive accuracy (supporting figure \ref{si-fig:p-cal-elpd-res}). <!--The projected models based on the PLSR reference model comprise more variables than that based on Bayesian regularization for the EAC\textsubscript{POM} (`r sapply(cal_plsr_proj_fe, function(x) x$cal_vs_ss)[[1]]` in comparison to `r sapply(cal_br_proj_fe, function(x) x$cal_vs_ss)[[1]]` for non-derived spectra). For the EDC\textsubscript{POM}, the differences are smaller.-->
 
 
 # Discussion
@@ -1818,21 +1823,21 @@ The analyzed peat samples cover a globally representative range of mid to high l
 
 ## Quinones and Phenols are Main Contributors to Peat EAC\textsubscript{POM} and EDC\textsubscript{POM}
 
-Our results point towards quinones and phenols as main contributors to the EAC\textsubscript{POM} and EDC\textsubscript{POM} of peat, respectively. EAC\textsubscript{POM} and EDC\textsubscript{POM} values are large along a H:C-O:C gradient with large O:C and large H:C ratio at the one end and small O:C and small H:C ratio at the other end (figure \ref{fig:p-el-ch-co1-res}). Based on commonly delineated H:C-O:C regions in van-Krevelen diagrams [@Kim.2003], we assume that this gradient characterizes material rich in polymeric quinones and phenols. This interpretation is also supported by the positive relation to carbonyl groups which are characteristic of polymeric quinones and phenols [@ElMansouri.2007] (figure \ref{fig:p-mir-cor-res}). In addition, the more pronounced negative correlation of the EDC\textsubscript{POM} to the N:C ratio in comparison to the EAC\textsubscript{POM} can be explained with the larger susceptibility of phenols towards decomposition in contrast to quinones which are formed by partial oxidation of phenols [@Fenner.2011; @Aeschbacher.2012; @Bolton.2018]. We expected this finding since quinones and phenols have been identified as major contributors to OM EAC and EDC in general [ @Ratasuk.2007; @Aeschbacher.2010; @Aeschbacher.2012].  
+Our results point towards quinones and phenols as main contributors to the EAC\textsubscript{POM} and EDC\textsubscript{POM} of peat, respectively. EAC\textsubscript{POM} and EDC\textsubscript{POM} values are large along a H:C-O:C gradient with large O:C and large H:C ratio at the one end and small O:C and small H:C ratio at the other end (figure \ref{fig:p-el-ch-co1-res}). Based on commonly delineated H:C-O:C regions in van-Krevelen diagrams [@Kim.2003], we assume that this gradient characterizes material rich in polymeric quinones and phenols. This interpretation is also supported by the positive relation to carbonyl groups which are characteristic of polymeric quinones and phenols [@ElMansouri.2007] (supporting figure \ref{si-fig:p-mir-cor-res}). In addition, the more pronounced negative correlation of the EDC\textsubscript{POM} to the N:C ratio in comparison to the EAC\textsubscript{POM} can be explained with the larger susceptibility of phenols towards decomposition in contrast to quinones which are formed by partial oxidation of phenols [@Fenner.2011; @Aeschbacher.2012; @Bolton.2018]. We expected this finding since quinones and phenols have been identified as major contributors to OM EAC and EDC in general [ @Ratasuk.2007; @Aeschbacher.2010; @Aeschbacher.2012].  
 We did not find clear relations of the N:C or S:C ratio to the EAC\textsubscript{POM} and EDC\textsubscript{POM} that would point towards a large contribution of non-quinone moieties to the EAC\textsubscript{POM} or EDC\textsubscript{POM}. In fact, the N:C ratio is negatively related to the EDC. A small non-quinone EAC and EDC is in line with the relative small S and N contents of the peat samples and the neutral pH value our measurements were standardized to [@Fimmen.2007; @HernandezMontoya.2012]; non-quinone EAC\textsubscript{POM} and EDC\textsubscript{POM} would likely be larger with smaller pH values [@Fimmen.2007; @HernandezMontoya.2012; @Aeschbacher.2012]. Moreover, it is likely that any relation between the N:C and S:C ratio and non-quinone EAC\textsubscript{POM} and EDC\textsubscript{POM} is confounded by the dependence of these element ratios and the quinone EAC\textsubscript{POM} and EDC\textsubscript{POM} on the degree of decomposition [@Biester.2014] (see below).  
 
 ## Vegetation Chemistry and Decomposition Cause the Decoupling of Peat EAC\textsubscript{POM} and EDC\textsubscript{POM}
 
-The decoupling of peat EAC\textsubscript{POM} and EDC\textsubscript{POM} (figure \ref{fig:p-el-comparison-res} b) can be explained by the joint effects of vegetation polymeric phenol contents and transformation of phenols to quinones during decomposition [@Aeschbacher.2012]. It has been suggested that undecomposed plant-derived polymeric aromatics, such as lignin, have large contents of phenols, but small contents of quinones, which results in an initially large EDC, but small EAC [@Aeschbacher.2012]. Decomposition and oxidation of the polymeric phenols decrease their fraction, but can increase the relative (and absolute) amount of quinones [@Aeschbacher.2012; @Bolton.2018; @LaCroix.2020]. These mechanisms have four important implications: First, undecomposed samples have a maximum EDC, second, this maximum EDC varies depending on the vegetation polymeric phenol content, third, decomposition of polymeric phenols decreases the EDC and increases the EAC [@Aeschbacher.2012], and fourth, the initial EDC defines the maximum potential EAC of a sample. This explains why a decoupling of the EAC and EDC can be observed for HS and DOM [@Aeschbacher.2012]. Our measurements fit into the EDC-EAC gradient observed for HS and DOM (supporting figure \ref{fig:p-el-eac-edc2-res}) and we therefore conclude that the decoupling of peat EAC\textsubscript{POM} and EDC\textsubscript{POM} is caused by the same mechanisms.  
+The decoupling of peat EAC\textsubscript{POM} and EDC\textsubscript{POM} (figure \ref{fig:p-el-comparison-res} b) can be explained by the joint effects of vegetation polymeric phenol contents and transformation of phenols to quinones during decomposition [@Aeschbacher.2012]. It has been suggested that undecomposed plant-derived polymeric aromatics, such as lignin, have large contents of phenols, but small contents of quinones, which results in an initially large EDC, but small EAC [@Aeschbacher.2012]. Decomposition and oxidation of the polymeric phenols decrease their fraction, but can increase the relative (and absolute) amount of quinones [@Aeschbacher.2012; @Bolton.2018; @LaCroix.2020]. These mechanisms have four important implications: First, undecomposed samples have a maximum EDC, second, this maximum EDC varies depending on the vegetation polymeric phenol content, third, decomposition of polymeric phenols decreases the EDC and increases the EAC [@Aeschbacher.2012], and fourth, the initial EDC defines the maximum potential EAC of a sample. This explains why a decoupling of the EAC and EDC can be observed for HS and DOM [@Aeschbacher.2012]. Our measurements fit into the EDC-EAC gradient observed for HS and DOM (supporting figure \ref{si-fig:p-el-eac-edc2-res}) and we therefore conclude that the decoupling of peat EAC\textsubscript{POM} and EDC\textsubscript{POM} is caused by the same mechanisms.  
 
 ## The Degree of Decomposition Confounds How the H:C ratio Represents Phenols and Quinones
 
-In contrast to @Aeschbacher.2012, we found only a weak relation between the EAC\textsubscript{POM} and the H:C ratio. In @Aeschbacher.2012, a large H:C ratio indicates a smaller polymeric phenol and quinone content, but also a larger polysaccharide content because the H:C ratio is related to the O:C ratio (figure \ref{fig:p-el-ch-co1-res}). In contrast, for our peat POM samples, a large H:C ratio is not indicative for a larger polysaccharide content because it could also represent strongly decomposed samples with high lipid content (figure \ref{fig:p-el-ch-co1-res} a). This confounds how the H:C ratio represents polymeric phenols and quinones because peat samples with the same large H:C ratio tend to have a smaller EAC\textsubscript{POM} if they contain a larger amount of lipids and smaller amount of polysaccharides (smaller O:C ratio). This indicates that strongly decomposed, lipid rich, peat has fewer polymeric phenols and quinones than undecomposed peat. In other terms, for the peat POM samples, the same H:C ratio can represent samples with either large O:C ratio or small O:C ratio, corresponding either to relatively undecomposed samples rich in polysaccharides and phenols and quinones or to strongly decomposed samples rich in lipids, but depleted in phenols and quinones [@Kim.2003; @Leifeld.2012; @Bader.2018]. This interpretation is also supported by the joint relation of the H:C and O:C ratio to the EAC\textsubscript{POM} in our regression models and by negative coefficients for MIRS variables representing lipids (table \ref{tab:t-mir-sel}, supporting figure \ref{fig:p-mir-cor-res}). Thus, since differences in the O:C ratio are linked to differences in the EAC\textsubscript{POM}, and since such samples are present within our data set, we found a weaker relation of the EAC\textsubscript{POM} to the H:C ratio. It is likely that the same pattern caused the relative weak relation @Tan.2017 observed for the EAC of HS to the H:C ratio.
+In contrast to @Aeschbacher.2012, we found only a weak relation between the EAC\textsubscript{POM} and the H:C ratio. In @Aeschbacher.2012, a large H:C ratio indicates a smaller polymeric phenol and quinone content, but also a larger polysaccharide content because the H:C ratio is related to the O:C ratio (figure \ref{fig:p-el-ch-co1-res}). In contrast, for our peat POM samples, a large H:C ratio is not indicative for a larger polysaccharide content because it could also represent strongly decomposed samples with high lipid content (figure \ref{fig:p-el-ch-co1-res} a). This confounds how the H:C ratio represents polymeric phenols and quinones because peat samples with the same large H:C ratio tend to have a smaller EAC\textsubscript{POM} if they contain a larger amount of lipids and smaller amount of polysaccharides (smaller O:C ratio). This indicates that strongly decomposed, lipid rich, peat has fewer polymeric phenols and quinones than undecomposed peat. In other terms, for the peat POM samples, the same H:C ratio can represent samples with either large O:C ratio or small O:C ratio, corresponding either to relatively undecomposed samples rich in polysaccharides and phenols and quinones or to strongly decomposed samples rich in lipids, but depleted in phenols and quinones [@Kim.2003; @Leifeld.2012; @Bader.2018]. This interpretation is also supported by the joint relation of the H:C and O:C ratio to the EAC\textsubscript{POM} in our regression models and by negative coefficients for MIRS variables representing lipids (table \ref{tab:t-mir-sel}, supporting figure \ref{si-fig:p-mir-cor-res}). Thus, since differences in the O:C ratio are linked to differences in the EAC\textsubscript{POM}, and since such samples are present within our data set, we found a weaker relation of the EAC\textsubscript{POM} to the H:C ratio. It is likely that the same pattern caused the relative weak relation @Tan.2017 observed for the EAC of HS to the H:C ratio.
 
 ## Decomposition indicators are poorly related to phenols and quinones
 
-We argue that many peat decomposition indicators are only weakly related to the EAC\textsubscript{POM} and EDC\textsubscript{POM} because they are no optimal descriptors of the polymeric phenol and quinone content. The O:C ratio is an indicator of the polysaccharide content and strongly related to all other decomposition indicators we analyzed (Pearson correlations of the O:C ratio with the N:C ratio, HI\textsubscript{1630/1090}, and C\textsubscript{OX} are `r round(d_cor["O:C", "N:C"], 2)`, `r round(d_cor["O:C", "hi3"], 2)`, and `r round(d_cor["O:C", "nosc"], 2)`, respectively). If we focus on how these indicators describe the degree of decomposition, there is the same confounding as described above, but viewed from a different perspective: for strongly decomposed peat (small O:C ratio), the indicators cannot distinguish between peat with large content of polymeric quinones and phenols on the one side (small H:C ratio) and strongly decomposed peat rich in lipids, but depleted in phenols and quinones (large H:C ratio). For this reason, the EAC\textsubscript{POM} can vary considerably across a broad range of HI$_\text{1630/1090}$ and N:C ratios, as observed in our peat samples (supporting figure \ref{fig:p-el-variables1-res}).  
-For the EDC\textsubscript{POM}, this confounding effect is less relevant since the EDC\textsubscript{POM} is negatively affected by decomposition, irrespective if the resulting peat is rich in lipids or polymeric quinones, as mentioned above [@Fenner.2011; @Bolton.2018]. This is evident from the stronger relation of the EDC\textsubscript{POM} to the N:C ratio ($\rho=`r round(d_cor["edc_c1", "N:C"], 2)`$). Nevertheless, since samples with a small O:C ratio that are rich in polymeric quinones and phenols have a larger EDC\textsubscript{POM}, and since the HI$_\text{1630/1090}$ and C$_\text{OX}$ do separate these samples less clearly from the lipid rich samples than the N:C ratio (supporting figure \ref{fig:p-el-variables1-res}), the relation of both the HI$_\text{1630/1090}$ and C$_\text{OX}$ is also weak for the EDC\textsubscript{POM}.
+We argue that many peat decomposition indicators are only weakly related to the EAC\textsubscript{POM} and EDC\textsubscript{POM} because they are no optimal descriptors of the polymeric phenol and quinone content. The O:C ratio is an indicator of the polysaccharide content and strongly related to all other decomposition indicators we analyzed (Pearson correlations of the O:C ratio with the N:C ratio, HI\textsubscript{1630/1090}, and C\textsubscript{OX} are `r round(d_cor["O:C", "N:C"], 2)`, `r round(d_cor["O:C", "hi3"], 2)`, and `r round(d_cor["O:C", "nosc"], 2)`, respectively). If we focus on how these indicators describe the degree of decomposition, there is the same confounding as described above, but viewed from a different perspective: for strongly decomposed peat (small O:C ratio), the indicators cannot distinguish between peat with large content of polymeric quinones and phenols on the one side (small H:C ratio) and strongly decomposed peat rich in lipids, but depleted in phenols and quinones (large H:C ratio). For this reason, the EAC\textsubscript{POM} can vary considerably across a broad range of HI$_\text{1630/1090}$ and N:C ratios, as observed in our peat samples (supporting figure \ref{si-fig:p-el-variables1-res}).  
+For the EDC\textsubscript{POM}, this confounding effect is less relevant since the EDC\textsubscript{POM} is negatively affected by decomposition, irrespective if the resulting peat is rich in lipids or polymeric quinones, as mentioned above [@Fenner.2011; @Bolton.2018]. This is evident from the stronger relation of the EDC\textsubscript{POM} to the N:C ratio ($\rho=`r round(d_cor["edc_c1", "N:C"], 2)`$). Nevertheless, since samples with a small O:C ratio that are rich in polymeric quinones and phenols have a larger EDC\textsubscript{POM}, and since the HI$_\text{1630/1090}$ and C$_\text{OX}$ do separate these samples less clearly from the lipid rich samples than the N:C ratio (supporting figure \ref{si-fig:p-el-variables1-res}), the relation of both the HI$_\text{1630/1090}$ and C$_\text{OX}$ is also weak for the EDC\textsubscript{POM}.
 
 ## Which Factors Determine the Polymeric Phenol and Quinone Content of Decomposed POM?
 
@@ -1846,10 +1851,10 @@ The hypothesis that vegetation chemistry and decomposition intensity together ch
 ## A conceptual model for peat EAC\textsubscript{POM} and EDC\textsubscript{POM}
 
 To summarize our findings, we propose the conceptual model shown in figure \ref{fig:conceptual1}. We hypothesize that both the polymeric phenol content of the peat forming vegetation and the intensity of decomposition processes are the most important factors controlling the EDC\textsubscript{POM} and EAC\textsubscript{POM} of peat. Moreover, both factors likely interact since peat with initially large amounts of polymeric phenols has a smaller decomposition rate [@Bengtsson.2018].  
-Wood and roots from trees and shrubs are probably the plant remains with the largest fraction of polymeric phenols [@Benner.1984; @Williams.1998; @Strakova.2010; @Hodgkins.2018], whereas other vascular plants and mosses have variable and partly smaller amounts of polymeric phenols [@Williams.1998; @Scheffer.2001; @Strakova.2010; @Bengtsson.2018; @Zak.2019]. For this reason, peat with larger contributions of wood or roots e.g. from shrubs (and potentially some graminoid or moss species) likely has the largest initial EDC\textsubscript{POM} and upon decomposition the largest potential EAC\textsubscript{POM} (figure \ref{fig:conceptual1} and supporting figure \ref{fig:conceptual2}). We propose that standardized measurements of electrochemical properties for different peat forming species are required to provide a quantitative basis for this hypothesis.  
-Under anoxic conditions, low phenol oxidase activities and the effects this has on other enzymes required for biomass breakdown [@Fenner.2011] make peat material keep its initial EDC\textsubscript{POM} and EAC\textsubscript{POM}. In addition, quinone formation by partial oxidation is limited under such conditions, such that the EDC\textsubscript{POM} should be relative large, whereas the EAC\textsubscript{POM} remains smaller (figure \ref{fig:conceptual1} and supporting figure \ref{fig:conceptual2}). A factor that may decrease both the EAC\textsubscript{POM} and EDC\textsubscript{POM} under such conditions are condensation reactions [@Hotta.2002; @Uchimiya.2009; @Bolton.2018; @Zhao.2020; @Olk.2006; @Heitmann.2006; @Yu.2016]. Conversely, faster degradation of polysaccharides may increase the EAC\textsubscript{POM} and EDC\textsubscript{POM} since this results in a relative increase of phenols and quinones [@Benner.1984]. However, it remains currently unclear to which extent both factors may play a role under anoxic conditions.
+Wood and roots from trees and shrubs are probably the plant remains with the largest fraction of polymeric phenols [@Benner.1984; @Williams.1998; @Strakova.2010; @Hodgkins.2018], whereas other vascular plants and mosses have variable and partly smaller amounts of polymeric phenols [@Williams.1998; @Scheffer.2001; @Strakova.2010; @Bengtsson.2018; @Zak.2019]. For this reason, peat with larger contributions of wood or roots e.g. from shrubs (and potentially some graminoid or moss species) likely has the largest initial EDC\textsubscript{POM} and upon decomposition the largest potential EAC\textsubscript{POM} (figure \ref{fig:conceptual1} and supporting figure \ref{si-fig:conceptual2}). We propose that standardized measurements of electrochemical properties for different peat forming species are required to provide a quantitative basis for this hypothesis.  
+Under anoxic conditions, low phenol oxidase activities and the effects this has on other enzymes required for biomass breakdown [@Fenner.2011] make peat material keep its initial EDC\textsubscript{POM} and EAC\textsubscript{POM}. In addition, quinone formation by partial oxidation is limited under such conditions, such that the EDC\textsubscript{POM} should be relative large, whereas the EAC\textsubscript{POM} remains smaller (figure \ref{fig:conceptual1} and supporting figure \ref{si-fig:conceptual2}). A factor that may decrease both the EAC\textsubscript{POM} and EDC\textsubscript{POM} under such conditions are condensation reactions [@Hotta.2002; @Uchimiya.2009; @Bolton.2018; @Zhao.2020; @Olk.2006; @Heitmann.2006; @Yu.2016]. Conversely, faster degradation of polysaccharides may increase the EAC\textsubscript{POM} and EDC\textsubscript{POM} since this results in a relative increase of phenols and quinones [@Benner.1984]. However, it remains currently unclear to which extent both factors may play a role under anoxic conditions.
 Thus, we assume that under anoxic conditions the initial vegetation properties largely control peat electrochemical properties.  
-Under oxic conditions, increased phenol oxidase activities result in an oxidative transformation of polymeric phenols to quinones [@Fenner.2011; @Schellekens.2015; @Bolton.2018]. This can increase the EAC\textsubscript{POM} and decrease the EDC\textsubscript{POM}. If under these oxic conditions e.g. large temperatures, large concentrations of nutrients, large amounts of labile OM, high pH values, or other factors further facilitate the mineralization of polymeric phenols [@Bragazza.2007; @Fenner.2011; @Kang.2018c; @Bowring.2020], coupling reactions [@Hotta.2002; @Johnson.2015; @Bolton.2018; @Zhao.2020], and other condensation reactions [@Bolton.2018; @Olk.2006; @Heitmann.2006; @Yu.2016], both the EAC\textsubscript{POM} and EDC\textsubscript{POM} may decrease (figure \ref{fig:conceptual1} and supporting figure \ref{fig:conceptual2}). Intense break-down of cell wall structures (as implied by our regression models for the EDC\textsubscript{POM} and EAC\textsubscript{POM}) may has an important role since it increases the surface of the polymeric phenols exposed for oxidation or condensation reactions [@Tsuneda.2001]. Just as under anoxic conditions, a decrease in the EAC\textsubscript{POM} and EDC\textsubscript{POM} may be offset by faster mineralization of polysaccharides than polymeric phenols [@Benner.1984]. However, again it remains currently unclear to which extent this factor and also condensation reactions play a role. Thus, we assume that oxic conditions increase the EAC\textsubscript{POM} at the expense of the EDC\textsubscript{POM}. The initial content of polymeric phenols defines the maximum EAC\textsubscript{POM} peat can attain throughout this process which results in variable responses of the peat EAC\textsubscript{POM} and EDC\textsubscript{POM} to decomposition. Intense aerobic decomposition, especially of material with low initial amounts of polymeric phenols, may even decrease the EAC due to mineralization and condensation of polymeric phenols.  
+Under oxic conditions, increased phenol oxidase activities result in an oxidative transformation of polymeric phenols to quinones [@Fenner.2011; @Schellekens.2015; @Bolton.2018]. This can increase the EAC\textsubscript{POM} and decrease the EDC\textsubscript{POM}. If under these oxic conditions e.g. large temperatures, large concentrations of nutrients, large amounts of labile OM, high pH values, or other factors further facilitate the mineralization of polymeric phenols [@Bragazza.2007; @Fenner.2011; @Kang.2018c; @Bowring.2020], coupling reactions [@Hotta.2002; @Johnson.2015; @Bolton.2018; @Zhao.2020], and other condensation reactions [@Bolton.2018; @Olk.2006; @Heitmann.2006; @Yu.2016], both the EAC\textsubscript{POM} and EDC\textsubscript{POM} may decrease (figure \ref{fig:conceptual1} and supporting figure \ref{si-fig:conceptual2}). Intense break-down of cell wall structures (as implied by our regression models for the EDC\textsubscript{POM} and EAC\textsubscript{POM}) may has an important role since it increases the surface of the polymeric phenols exposed for oxidation or condensation reactions [@Tsuneda.2001]. Just as under anoxic conditions, a decrease in the EAC\textsubscript{POM} and EDC\textsubscript{POM} may be offset by faster mineralization of polysaccharides than polymeric phenols [@Benner.1984]. However, again it remains currently unclear to which extent this factor and also condensation reactions play a role. Thus, we assume that oxic conditions increase the EAC\textsubscript{POM} at the expense of the EDC\textsubscript{POM}. The initial content of polymeric phenols defines the maximum EAC\textsubscript{POM} peat can attain throughout this process which results in variable responses of the peat EAC\textsubscript{POM} and EDC\textsubscript{POM} to decomposition. Intense aerobic decomposition, especially of material with low initial amounts of polymeric phenols, may even decrease the EAC due to mineralization and condensation of polymeric phenols.  
 
 ```{r conceptual1, fig.align='center', out.width="100%", fig.cap='Conceptual description of the assumed effects of vegetation chemistry (polymeric phenol content) and decomposition pathways and intensity on peat chemistry and its EAC and EDC. Note that the assignment of plant taxa and their polymeric phenol contents is only an example as the chemical properties may be highly diverse within taxa \\citet{Bengtsson.2018}.'}
 knitr::include_graphics("./../figures/conceptual_vegetation_decomposition1.pdf")
@@ -1857,7 +1862,7 @@ knitr::include_graphics("./../figures/conceptual_vegetation_decomposition1.pdf")
 
 ## MIRS-Based Regression Models can Predict Peat EAC\textsubscript{POM}
 
-We suggest that our modeling approach is a proof-of-concept that peat EAC\textsubscript{POM} can be predicted from MIRS. The MIRS-based model had the smallest average RMSE, albeit the RMSE for both the MIRS-based model and the element ratio-based model were relatively large and their 95%-posterior intervals broad and strongly overlapping. During graphical model validation, we observed that the element ratio-based model had a considerably larger bias than the MIRS-based model (supporting figure \ref{fig:p-y-yhat-res}), suggesting that the MIRS-based model overall is more robust.  
+We suggest that our modeling approach is a proof-of-concept that peat EAC\textsubscript{POM} can be predicted from MIRS. The MIRS-based model had the smallest average RMSE, albeit the RMSE for both the MIRS-based model and the element ratio-based model were relatively large and their 95%-posterior intervals broad and strongly overlapping. During graphical model validation, we observed that the element ratio-based model had a considerably larger bias than the MIRS-based model (supporting figure \ref{si-fig:p-y-yhat-res}), suggesting that the MIRS-based model overall is more robust.  
 In contrast to this, both element ratio-based and MIRS-based regression models failed to adequately capture the variability in the EDC\textsubscript{POM}. Since the EDC\textsubscript{POM} of our samples in their oxidized state was smaller, the relative large predictive uncertainties turn both models unsuitable for practical applications.
 
 # Conclusions
@@ -1870,7 +1875,7 @@ Therefore, spatially resolved measurements or the incorporation of our hypothesi
 
 # Open Research {.unnumbered}
 
-Data and code to reproduce this document are available as research compendium on Zenodo and GitHub [--- todo: add link to GitHub repo, add Zenodo DOI, add citation, add license]. In addition, the MIRS-based reference models based on Bayesian regularization for both the EAC\textsubscript{POM} and EDC\textsubscript{POM} are available via the R package irpeat [@Teickner.2020b]. These models can be used for predictions with own MIRS data.
+Data and code to reproduce this document are available as research compendium on Zenodo and GitHub [--- todo: add link to GitHub repo, add Zenodo DOI, add citation, add license]. In addition, the MIRS-based reference models based on Bayesian regularization for both the EAC\textsubscript{POM} and EDC\textsubscript{POM} are available via the R package irpeat [@Teickner.2020b]. These models can be used for predictions with own MIRS data. [For review purposes, the reproducible research compendium including all necessary data and code to reproduce the findings presented in the manuscript can be found at the following link: https://uni-muenster.sciebo.de/s/SbbFgA8pOI4JKW9]
 
 # Author contributions {.unnumbered}
 HT (conceptualization, data curation, formal analysis, investigation, methodology, software, validation, visualization, writing - original draft, writing – review & editing). CG (conceptualization, investigation, methodology, writing – review & editing), KHK (conceptualization, funding acquisition, methodology, project administration, resources, supervision, writing - original draft, writing – review & editing).
@@ -1881,1408 +1886,36 @@ For their support during sample collection/provision, we would like to thank Sve
 Analyses of this study were carried out in the laboratory of the Institute of Landscape Ecology. Svenja Agethen and Michael Sander provided analytical support. The assistance of  Ulrike Berning-Mader, Madeleine Supper, Victoria Ratachin, and numerous student assistants is greatly acknowledged. We thank Dr. Hendrik Wetzel, Fraunhofer Institute for Applied Polymer Research, Dept. Starch Modification/Molecular Properties, Potsdam, Germany, for analysis of O and H. The workflow was reproduced by the Reproducible Research Support Service of the University of Münster.  
 This Study was funded by the Deutsche Forschungsgemeinschaft (DFG, German Research Foundation) grant no. KN 929/12-1 to Klaus-Holger Knorr; Chuanyu Gao was supported by the Youth Innovation Promotion Association CAS (No. 2020235).
 
-# References {#references .unnumbered}
-\nocite{*}
-<div id="refs"></div>
-
-\clearpage
-\renewcommand{\thefigure}{S\arabic{figure}} 
-\setcounter{figure}{0}
-\setcounter{page}{1}
-\setcounter{section}{1}
-\setcounter{subsection}{0}
-
-# Supplementary Information {.unnumbered}
-
-## Graphical Abstract
-
-```{r graphical-abstract, fig.align="center", out.width="0.6\\textwidth", fig.cap='Graphical abstract: Description: This study addresses the relation between peat chemical properties (element contents, mid infrared spectra) and electrochemical properties and the role of decomposition for both based on a global data set. Peat electrochemical properties (electron accepting capacity - EAC, electron donating capacity - EDC) control peatland methane formation. Phenols are main contributors to the EDC and quinones to the EAC. Vegetation chemistry and intensity of decomposition are major controls of peat EAC and EDC. Peat with initial large amount of phenols initially have a large EDC and upon decomposition a larger EAC since phenols are transformed to quinones. Samples with initially smaller amount of phenols cannot attain the same EAC/EDC levels, even though decomposition leads to similar changes. This conceptual model can explain the large within and between-site variability of the EAC and EDC we observed, as well as the complex relations to indicators of peat chemistry and decomposition indicators.'}
-knitr::include_graphics("./../figures/graphical_abstract.pdf")
+```{r supporting-info, include=FALSE, warning=FALSE}
+rmarkdown::render("006-paper-supplementary.Rmd", clean = FALSE)
 ```
 
-## Supplementary Methods
+```{r references-preparation}
+# get bibkeys
+bibkeys <- bib2df::bib2df("references.bib")
 
-### Mid Infrared Spectroscopy
-
-All spectra were linearly interpolated to a resolution of 1 cm$^{-1}$. To remove artifacts caused by CO$_2$, all spectra were linearly interpolated in the region `r mir_interpolation_range$start` to `r mir_interpolation_range$end` cm$^{-1}$. Subsequently, baseline correction was performed using a rubberband algorithm (based on a convex hull procedure combined with smoothing splines) [@Beleites.2020]. After this, spectra were clipped by 20 and 10 wavenumber units at the start and end, to the range `r bc_range$start` to \SI{`r bc_range$end`}{\wn}, and baseline correction was performed a second time to fully align the start and end points of the spectra. Finally, all spectra were normalized to unit intensity sum.
-
-### Element Ratio-Based Regression Models
-
-In addition to the models described in the main text, we evaluated if using robust regression (coefficients are assumed to follow a Student-t distribution instead of a Gaussian distribution) has an effect on the model fit since several samples did not fit in the overall pattern.  
-We applied several transformations to facilitate model fitting and defining prior distributions: The EAC\textsubscript{POM} and EDC\textsubscript{POM} values were divided by their maximal values (i.e. after transformation all values were $\le1$) and a small constant of 0.05 was added to the scaled EDC\textsubscript{POM} values to facilitate convergence. All predictor variables were centered (such that their mean value is 0 and the model's intercept represents average samples) and scaled (such that their standard deviation is 1).  
-We used a Normal prior distribution with a mean of log(0.5) and a standard deviation of 0.1 amounting to a 95%-confidence interval of the prior intercept on the link function scale of approximately `r round(redoxpeat::get_lower_ci(exp(ppc1_pars$y_pop), prob = 0.95), 2)` to `r round(redoxpeat::get_upper_ci(exp(ppc1_pars$y_pop), prob = 0.95), 2)` which loosely matched our expectations of the position of the samples' mean following our normalization procedure. We also assumed the slopes of the top regression model to be normally distributed with a mean of 0 and a standard deviation of `r reg_base_eac_data$sigma_beta_0[[1]]`. This expresses a vague prior knowledge, allowing both negative and positive slopes of different strength with equal probability, matching the scarce knowledge basis for the relation of the different bulk peat chemistry descriptors with the EAC (supporting figure \ref{fig:p-ppc-res}).  
-For the variance of the individual measurements an exponential distribution was assumed. For each sample, we estimated a separate variance. We set the scale parameter for the prior of each measurement such that an average measurement had an average prior standard deviation of around $\SI{`r round(mean(ppc1_pars$sigma_j.1) * max(as.numeric(el_t0$eac_c[index_eac]), na.rm = TRUE), 0)`}{\micro\mol\per\g\carbon}$ which corresponds approximately to the maximum standard error reported by @Aeschbacher.2012 for EAC measurements for various humic and fulvic acids using the same measurement procedure. Similarly, for the residual variance of the regression model an equivalent exponential distribution was assumed.  
-All regression models were developed and fitted with Stan [@Carpenter.2017] via the R packages rstan (2.19.3) [@StanDevelopmentTeam.2020] and using rstantools (2.0.0) [@Gabry.2019b]. The model was fitted using Markov Chain Monte Carlo (MCMC) sampling. Four MCMC chains were run for 2000 iterations, including 500 warmup iterations (6000 post-warmup samples in total). Model validation was performed using the $\hat{R}$ statistic, trace plots of the MCMC draws, posterior predictive checks, area plots of the estimate regression parameters [@Gelman.2014b; @Gabry.2019] (R package bayesplot (1.7.2) [@Gabry.2019]), and residual analysis.
-
-### MIRS-Based Regression Models
-
-PLSR models were computed using the R package pls (2.7-2) [@Mevik.2019]. Regression models with Bayesian regularization were computed using rstan (2.19.3) [@StanDevelopmentTeam.2020] and rstanarm (2.19.3) [@Goodrich.2020], and using a vague Gaussian prior for PLSR-based models and using a horseshoe prior with an assumed number of relevant variables set to `r p0` [@Piironen.2017c] for Bayesian regularization models. Bayesian projection was performed using projpred (1.1.6) [@Piironen.2019]. All regression models were fitted with the same MCMC parameters and validated as described above for the models based on element ratios.  
-Bayesian projection was performed using projpred (1.1.6) [@Piironen.2019] with L1-search, five clusters for prediction, and no penalization during computation of projected coefficients [@Piironen.2019; @Piironen.2020]. The number of variables to include in the projected model was determined based on the expected sum of log predictive densities (ELPD) computed by pareto smoothed importance sampling (mimicking leave-one-out cross-validation) (PSIS-LOO), such that the ELPD of the projected model was at most one standard error smaller than that of the reference model. Even though PSIS-LOO estimates were biased for most of the models due to influential observations, this has been shown to have only small influences on the performance of the projection approach [@Piironen.2020].
-
-### Cross-Validation
-
-During 10-fold CV, the data is split into ten folds, and the models are fitted to all combinations of the folds, leaving out one of the ten folds each time. The left out fold is then used as test data the model's prediction are compared to by computing the RMSE [@Roberts.2017]. Peat core data typically have a nested structure (samples at different depths are nested within cores) in terms of their variability. To ensure independence of the test data, we used stratified random sampling to account for this structure [@Roberts.2017] which resulted in folds with `r min(c(table(reg_cv_index_eac), table(reg_cv_index_edc)))` to `r max(c(table(reg_cv_index_eac), table(reg_cv_index_edc)))` samples. We did not account for the fact that nearby sites are not completely independent since this would have increased sample size differences between folds. Due to the relative large inter-site variability, even between nearby sites, we assumed that this effect is negligible.
-
-### Software
-
-All computations were preformed in R (4.0.1) [@RCoreTeam.2020]. Graphics were created using ggplot2 (3.3.2) [@Wickham.2016], cowplot (1.0.0) [@Wilke.2019], ggrepel (0.8.2) [@Slowikowski.2020], and ggforce (0.3.1) [@Pedersen.2019], and Inkscape. Spatial data was handled using sf (0.9-3) [@Pebesma.2018b], sp (1.4-2) [@Pebesma.2005], rgeos (0.5-3) [@Bivand.2020], and raster (3.3-13) [@Hijmans.2020]. dplyr (1.0.0) [@Wickham.2020e], purrr (0.3.4) [@Henry.2020], magrittr (1.5) [@Bache.2014], and tidyr (1.1.0) [@Wickham.2020f] were used for general data processing. Measurement errors and units were handled with quantities (0.1.5) [@Pebesma.2016; @Ucar.2019], and element content data with elco (0.0.0.9000) [@Teickner.2020e].
-
-## Supplementary Results
-
-### Correlation of the EAC\textsubscript{POM}, EDC\textsubscript{POM}, and EDC\textsubscript{POM}:EAC\textsubscript{POM} Ratio with XRF Data
-
-We measured element contents with wavelength dispersive X-ray fluorescence spectroscopy (WD-XRF; ZSX Primus II, Rigaku, Tokyo, Japan), but did not include the measurements into our analyses since such analyses are entirely explorative and not corrobated by similar analyses for DOM and HS. Here, we present Pearson correlation coefficients for the measured element contents with the EAC\textsubscript{POM}, EDC\textsubscript{POM}, and EDC\textsubscript{POM}:EAC\textsubscript{POM} ratio (table \ref{tab:t-cor-el-xrf}).
-
-```{r t-cor-el-xrf}
-# compute correlation values
-target_variables_xrf <- c("Na", "Mg", "Al", "Si", "P", "Cl", "K", "Ca", "Ti", "Cr", "Mn", "Fe", "Cu", "Zn", "As", "Br", "Rb", "Sr", "Ba", "Pb")
-
-d_cor_xrf <- 
-  dplyr::bind_cols(
-    d %>%
-      dplyr::filter(index_eac) %>%
-      dplyr::select(dplyr::all_of(target_variables_xrf)) %>%
-      cor(d %>%
-            dplyr::filter(index_eac) %>%
-            dplyr::select(dplyr::all_of(c("eac_c1"))), 
-          use = "pairwise.complete.obs") %>%
-      as.data.frame() %>%
-      dplyr::mutate(Element = rownames(.)) %>%
-      dplyr::mutate(dplyr::across(dplyr::all_of(c("eac_c1")), round, 2)) %>%
-      dplyr::rename(EAC = eac_c1) %>%
-      dplyr::select(Element, EAC),
-    d %>%
-      dplyr::filter(index_edc) %>%
-      dplyr::select(dplyr::all_of(target_variables_xrf)) %>%
-      cor(d %>%
-            dplyr::filter(index_edc) %>%
-            dplyr::select(dplyr::all_of(c("edc_c1"))), 
-          use = "pairwise.complete.obs") %>%
-      as.data.frame() %>%
-      dplyr::mutate(dplyr::across(dplyr::all_of(c("edc_c1")), round, 2)) %>%
-      dplyr::rename(EDC = edc_c1) %>%
-      dplyr::select(EDC),
-    d %>%
-      dplyr::filter(index_eac & index_edc) %>%
-      dplyr::select(dplyr::all_of(target_variables_xrf)) %>%
-      cor(d %>%
-            dplyr::filter(index_eac & index_edc) %>%
-            dplyr::select(dplyr::all_of(c("edc_c1:eac_c1"))), 
-          use = "pairwise.complete.obs") %>%
-      as.data.frame() %>%
-      dplyr::mutate(dplyr::across(dplyr::all_of(c("edc_c1:eac_c1")), round, 2)) %>%
-      dplyr::rename(`EDC:EAC` = `edc_c1:eac_c1`) %>%
-      dplyr::select(`EDC:EAC`)
-  )
+# get texts to search for bibkey
+si_text <- 
+  readLines("006-paper-supplementary.Rmd") %>%
+  paste(collapse = " ")
   
+main_text <- 
+  readLines("001-paper-main.Rmd") %>%
+  paste(collapse = " ")
 
-# make a pretty table
-d_cor_xrf %>%
-kableExtra::kable(format = "latex", booktabs = TRUE, 
-                    caption = 'Pearson correlation between the EAC\\textsubscript{POM}, EDC\\textsubscript{POM}, and EDC\\textsubscript{POM}:EAC\\textsubscript{POM} ratio on the one side and element contents as determined by wavelength dispersive X-ray fluorescence spectroscopy.',
-                    align = "cccc",
-                  col.names = c("Element", "EAC\\textsubscript{POM}", "EDC\\textsubscript{POM}", "EAC\\textsubscript{POM}:EDC\\textsubscript{POM}"),
-                  escape = FALSE)
-```
-
-## Supplementary Discussion
-
-### Other Potential Mechanisms how Decomposition may Affect Peat EAC\textsubscript{POM} and EDC\textsubscript{POM}
-
-Different decomposition and other processes may further modify peat EAC\textsubscript{POM} and EDC\textsubscript{POM}. This may partly explain the observed variability in the relation of the EAC\textsubscript{POM} and EDC\textsubscript{POM} to peat chemistry and molecular structures. However, effects are yet not well explored and and we can therefore only provide hypotheses.  
-First, it is known that phenols and quinones can undergo different condensation reactions with other phenols/quinones [@Hotta.2002; @Johnson.2015; @Bolton.2018; @Zhao.2020] or nitrogen and sulfur containing functional groups [@Bolton.2018; @Olk.2006; @Heitmann.2006; @Yu.2016]. Such reactions may decrease the amount of phenols and quinones and hence decrease the EAC\textsubscript{POM} and EDC\textsubscript{POM}. Strong aerobic decomposition, intesified e.g. by higher temperatures, higher pH values, a larger nutrient availability, and a larger fraction of labile OM, may promote such reactions because it can increase the DOM concentration [@Bragazza.2007; @Fenner.2011; @Kang.2018c; @Bowring.2020] which in turn is suggested to increase the occurrence of such condensation reactions [@Hotta.2002; @Johnson.2015]. However, we may not exclude that such reactions may also play a role under anoxic conditions. The negative relation of the EAC\textsubscript{POM} to polysubstituted aromatics (table \ref{tab:t-mir-sel}) may point towards such effects.  
-Second, intense aerobic decomposition may promote the disintegration of cell-wall structures [@Tsuneda.2001]. This may increase the surface accessibility of polymeric phenols and quinones to enzymes that can break them down [@Tsuneda.2001]. In addition, this may increase the frequency of the mentioned condensation reactions. Disintegration of cell-wall structures may therefore be an important process in the mineralization and transformation of polymeric phenols and quinones. The relation of the EAC\textsubscript{POM} and EDC\textsubscript{POM} to free OH groups and intramolecularly bonded OH groups, respectively, may be an indicator for this (table \ref{tab:t-mir-sel}).  
-Third, polysaccharides are typically mineralized at a faster rate than polymeric phenols and quinones, both under oxic and anoxic conditions [@Benner.1984]. Since polysaccharides are not assumed to be redox-active, this may increase the EAC\textsubscript{POM} and EDC\textsubscript{POM} by residual enrichment of redox active moieties.  
-Finally, an additional factor that might increase the variability in relations between peat chemistry and the EAC\textsubscript{POM} and EDC\textsubscript{POM} is root ingrowth in (highly) decomposed peat. Roots that are relatively rich in polymeric phenols [@Moore.2007; @Scheffer.2000] may increase the EDC\textsubscript{POM} and EAC\textsubscript{POM} (under anoxic conditions predominantly the EDC\textsubscript{POM}) of (highly) decomposed peat. This may result in a relative large EAC\textsubscript{POM} and/or EDC\textsubscript{POM}, in spite of the bulk peat being (highly decomposed). This may explain the relative large EDC\textsubscript{POM}:EAC\textsubscript{POM} ratio for Touxi and Dongtu. Macrofossil data would have been helpful to answer this questions, but were not available for the samples under study.  
-Based on our results, it remains currently unclear if and to which extent these factors may change peat EAC\textsubscript{POM} and EDC\textsubscript{POM}, but they represent plausible mechanisms which may explain the variability to peat chemical properties, including molecular structures.
-
-### Predictive Performance of the Regression Models
-
-Several factors may cause the large variability in the predictions of both models for the EAC\textsubscript{POM} and the bias of the element ratio-based model.
-We attribute the latter to the complex interactions between vegetation chemistry and decomposition, as described above, that results in non-trivial gradients across the H:C-O:C gradient. The MIRS-based model probably performs better because it can separate OM fractions representative for changes in the EAC\textsubscript{POM}. In addition, element ratios probably cannot fully resolve quinone structural changes that control peat EAC\textsubscript{POM}, whereas MIRS-based models can because MIRS allow to better separate variations in carbonyl groups and different OM fractions [@Stuart.2005]. 
-The large residual uncertainties of both models may be due to the relatively small sample size in contrast to the broad gradient in peat chemical properties covered. On the one side, this results in large differences in peat chemistry the model has to describe, which lowers its predictive performance in comparison to more targeted models, and one the other side, the small sample size results in a relative large CV error. Finally, the electrochemical measurements itself have a relative large variability which we fully considered during CV. We therefore suggest that MIRS-based regression models may be at least suitable as screening tools. Furthermore, we suggest that additional data, different preprocessing methods, or modeling approaches (e.g. local models depending on peat characteristics) may improve the predictive performance of a predictive model.  
-We believe that the reason for the low performance of the models for the EDC\textsubscript{POM} is the stronger dependence of phenols on decomposition, in addition to the general issues mentioned for models for the EAC\textsubscript{POM}. MIR variables indicative for phenols [@Stuart.2005] typically are overlapped by other bands in peat MIRS. The stronger dependence on decomposition indicators (e.g. the N:C ratio) probably makes the amount of carbonyl groups or aromatic backbone structures less suitable as predictors for the EDC\textsubscript{POM}, even though the correlation spectra indicated some relation (figure \ref{fig:p-mir-cor-res}). Similarly, indicators for fresh peat do not account for the fact that peat with large amounts of polysaccharides typically contain less polymeric phenols and therefore also may have a small EDC\textsubscript{POM}. Overall this likely makes predictions using linear methods or a global model difficult.  
-Bias from not considered contributions of iron to the EAC\textsubscript{POM} and EDC\textsubscript{POM} may also play a role, even though residual plots versus total iron content did not indicate patterns for the filtered data (supporting figures \ref{fig:reg-fe-res} and \ref{fig:cal-fe-res}).
-
-\clearpage
-
-
-## Supplementary Figures
-
-Figure \ref{fig:el-preprocessing-p1-res} shows boxplots of the peat EAC$_\text{POM}$ and EDC$_\text{POM}$ replicate measurements for each sample.
-
-```{r el-preprocessing-p1-res, fig.align='center', fig.width=4, fig.height=7, out.width="50%", fig.cap='Boxplots of the EAC$_\\text{POM}$ and EDC$_\\text{POM}$ replicate measurements for the samples from this study. For sample 2, the EAC measurement with more than $\\SI{1500}{\\micro\\mol\\per\\gram\\carbon}$ was assumed to represent a measurement error and therefore discarded prior the statistical analysis.'}
-el_preprocessing_p1
-```
-
-\clearpage
-Figure \ref{fig:p-fe-xrf-comparison-res} compares iron contents from acid extraction with total iron contents as measured with wavelength dispersive X-ray fluorescence spectroscopy.
-
-```{r p-fe-xrf-comparison-res, fig.align='center', out.width="50%", fig.width=4.5, fig.height=3.5, fig.cap='Scatterplot of total iron contents from acid extraction versus total iron contents from wavelength dispersive X-ray fluorescence spectroscopy. The diagonal line represents identical iron contents from both procedures.'}
-p_fe_xrf_comparison
-```
-
-
-Figure \ref{fig:p-fe-contribution-abs-res} shows histograms of the calculated contributions of iron to the EAC and EDC and the potential contribution of iron to either the EAC or EDC. All iron quantities refer to iron from acid extracts of the samples. It is assumed that Fe$^{3+}$ ions contribute one mol electrons to the EAC and that Fe$^{2+}$ ions contribute one mol electrons to the EDC. However, the acid extraction of iron from organic rich samples results in redox equilibria between the OM and iron species which leads to an overestimation of Fe$^{2+}$ over Fe$^{3+}$. Therefore, the potential contribution gives the amount of electrons iron may contribute to the EAC or EDC if all iron was present as Fe$^{3+}$ or Fe$^{2+}$, respectively ($\text{Fe}_\text{tot}=\text{Fe}^{3+} + \text{Fe}^{2+}$). This gives an overview on what contribution iron may maximally have had to the EAC and EDC, assuming that the acid extraction enabled the quantification of all redox active iron moieties in the samples.
-
-```{r p-fe-contribution-abs-res, fig.align='center', out.width="80%", fig.width=8, fig.height=3, fig.cap='Histograms of the calculated contribution of iron to the EAC (left), the EDC (middle), or the potential contribution of iron to either the EAC or EDC (right) to each sample.'}
-p_fe_contribution_abs
-```
-
-\clearpage
-Figure \ref{fig:p-fe-corrected-uncorrected-res} shows plots of EAC and EDC values with potential contribution from total acid extracted iron subtracted in dependency of either the measured EAC or EDC or the EAC\textsubscript{POM} and EDC\textsubscript{POM} (EAC or EDC with contributions from Fe$^{3+}$ and Fe$^{2+}$, respectively, subtracted) for both the complete and filtered (potential contribution of iron to the EAC and EDC $\le \SI{100}{\micro\mol\of\gram\carbon}$).
-
-```{r p-fe-corrected-uncorrected-res, fig.align='center', out.width="100%", fig.width=13, fig.height=8, fig.cap='Plot of EAC or EDC values, where the potential contribution from iron had been subtracted ($\\text{EAC} - \\text{Fe}_\\text{tot}$ or $\\text{EDC} - \\text{Fe}_\\text{tot}$) versus $\\text{EAC}_\\text{POM}$ or $\\text{EDC}_\\text{POM}$ values (\\textbf{A, B}; $\\text{EAC}_\\text{POM} = \\text{EAC} - \\text{Fe}^{3+}$ and $\\text{EDC}_\\text{POM} = \\text{EDC} - \\text{Fe}^{2+}$) or measured EAC or EDC values (\\textbf{C, D}) for the complete data set (\\textbf{A, C}) or the data set with only samples that have a maximum potential contribution of iron to the EAC or EDC $\\le \\SI{100}{\\micro\\mol\\of\\gram\\carbon}$ (\\textbf{B, D}). Different colours represent samples from different sites and error bars represent standard deviations computed from replicate measurements of the EAC and EDC, respectively. The grey diagonal line with intercept in $(0,0)$ represents identical values along both axes. The other grey line is a linear regression line fitted to the data points.'}
-cowplot::plot_grid(
-  plotlist = list(
-    cowplot::plot_grid(
-      p_fe_corrected_uncorrected1,
-      p_fe_corrected_uncorrected2,
-      p_fe_corrected_uncorrected3,
-      p_fe_corrected_uncorrected4,
-      ncol = 2, labels = LETTERS[1:4]
-    ),
-    cowplot::plot_grid(
-      NULL,
-      cowplot::get_legend(p_fe_corrected_uncorrected1 + 
-                            theme(legend.position = "bottom") +
-                            guides(colour = guide_legend(title = "Site",
-                                                         nrow = 2))),
-      NULL,
-      ncol = 3
-    )
-  ),
-  nrow = 2,
-  rel_heights = c(1, 0.13) 
-)
-```
-
-\clearpage
-Figure \ref{fig:p-fe-raw-iron} shows the relation between measured EAC and EDC values on the one side and iron content values from wavelength dispersive X-ray fluorescence spectroscopy measurements and acid extraction. No systematic relation between the EAC values and iron contents are visible. For the EDC, samples with higher iron content tend to have smaller measured EDC values.
-
-```{r p-fe-raw-iron, fig.align='center', out.width="100%", fig.width=8, fig.height=3, fig.cap='Scatterplots of the measured EAC and EDC versus iron contents measured with wavelength dispersive X-ray fluorescence spectroscopy (Fe\\textsubscript{tot, XRF} in mass-\\%) or from acid extraction (Fe$^{2+}$, Fe$^{3+}$, and Fe\\textsubscript{tot} in \\si{\\micro\\mol\\per\\gram\\of\\sample}). Error bars represent the standard deviation from replicate measurements for the EAC and EDC, respectively.'}
-p_fe_corrected_uncorrected_df %>%
-  dplyr::select(id_90, uncorrected_median, uncorrected_lwr, uncorrected_upr, variable) %>%
-  dplyr::left_join(d %>% dplyr::select(id_90, site_label, Fe), by = "id_90") %>%
-  dplyr::left_join(fe_t0 %>% dplyr::select(id_90, fe2, fe3, fe_tot), by = "id_90") %>%
-  dplyr::mutate(dplyr::across(dplyr::all_of(c("fe2", "fe3", "fe_tot", "Fe")), as.numeric)) %>%
-  dplyr::mutate(Fe = Fe * 100) %>%
-  dplyr::rename('Fe^{2*"+"}' = fe2, 'Fe^{3*"+"}' = fe3, 'Fe[tot]' = fe_tot, 'Fe["tot, XRF"]' = Fe) %>%
-  tidyr::pivot_longer(cols = dplyr::all_of(c('Fe^{2*"+"}', 'Fe^{3*"+"}', 'Fe[tot]', 'Fe["tot, XRF"]')),
-                      names_to = "x_var_name", values_to = "x_var_value") %>%
-  ggplot(aes(y = as.numeric(uncorrected_median), ymin = uncorrected_lwr, ymax = uncorrected_upr, x = as.numeric(x_var_value))) +
-  geom_errorbar(width = 0, colour = "grey") +
-  geom_point() +
-  facet_grid(variable ~ x_var_name, scales = "free", labeller = label_parsed) +
-  labs(y = expression("EAC or EDC ["*mu*mol~g[C]^{-1}*"]"),
-       x = "Iron content") +
-  theme(panel.spacing.x = unit(5, "mm"))
-```
-
-\clearpage
-Figure \ref{fig:p-fe-decomposition-res} shows iron content values versus decomposition indicators (N:C ratio and HI\textsubscript{1630/1090}). 
-
-```{r p-fe-decomposition-res, fig.align='center', out.width="55%", fig.width=4, fig.height=5.5, fig.cap='Scatterplots of iron contents measured with wavelength dispersive X-ray fluorescence spectroscopy (Fe\\textsubscript{tot, XRF} in mass-\\%) or from acid extraction (Fe$^{2+}$, Fe$^{3+}$, and Fe\\textsubscript{tot} in \\si{\\micro\\mol\\per\\gram\\of\\sample}) in comparison to peat decomposition indicators (N:C ratio and HI\\textsubscript{1630/1090}). The grey lines are regression lines fit to the samples.'}
-d %>% dplyr::select(id_90, site_label, Fe, `N:C`, hi3) %>%
-  dplyr::left_join(fe_t0 %>% dplyr::select(id_90, fe2, fe3, fe_tot), by = "id_90") %>%
-  dplyr::mutate(dplyr::across(dplyr::all_of(c("fe2", "fe3", "fe_tot", "Fe", "N:C", "hi3")), as.numeric)) %>%
-  dplyr::mutate(Fe = Fe * 100) %>%
-  dplyr::rename('Fe^{2*"+"}' = fe2, 'Fe^{3*"+"}' = fe3, 'Fe[tot]' = fe_tot, 'Fe["tot, XRF"]' = Fe, "HI" = hi3) %>%
-  tidyr::pivot_longer(cols = dplyr::all_of(c('Fe^{2*"+"}', 'Fe^{3*"+"}', 'Fe[tot]', 'Fe["tot, XRF"]')),
-                      names_to = "y_var_name", values_to = "y_var_value") %>%
-  tidyr::pivot_longer(cols = dplyr::all_of(c("N:C", "HI")),
-                      names_to = "x_var_name", values_to = "x_var_value") %>%
-  ggplot(aes(y = y_var_value, x = as.numeric(x_var_value))) +
-  geom_point() +
-  geom_smooth(method = "lm", se = FALSE, colour = "grey50") +
-  facet_grid(y_var_name ~ x_var_name, scales = "free", labeller = label_parsed) +
-  labs(y = expression("Iron content"),
-       x = expression(HI["1630/1090"]~or~"N:C ratio"))
-```
-
-\clearpage
-Figure \ref{fig:p-reg-distogram-res} shows the structure of the Bayesian hierarchical regression models used to predict the peat EAC\textsubscript{POM} and EDC\textsubscript{POM} from element ratios, including the respective distributions [@Kruschke.2015; @Baath.2018], using either Gaussian slopes or Student-t slopes.
-
-```{r p-reg-distogram-res, fig.align='center', out.width='\\textwidth', fig.cap=paste0('Conceptual representation of the structure of the regression models \\citep{Kruschke.2015, Baath.2018} using element ratios as predictor variables. A: Model structure for the models with normal distributed slopes. B: Model structure for the models with Student-t distributed slopes ($\\nu = ', reg_base_eac_data$nu_betas,'$). $y_i$ is the ith replicate EAC\\textsubscript{POM} or EDC\\textsubscript{POM} measurement. Replicate measurements for the same sample are assumed to follow a Gamma distribution with mean $\\mu_j$ for the jth sample, and a sample-specific standard deviation $\\sigma_j$. The $\\mu_j$ are modeled by a regression equation $\\exp\\left(\\beta_0 + \\beta_1 x_1\\right)$ and are also assumed to follow a Gamma distribution with mean $\\mu$ and standard deviation $\\sigma_2$. $\\beta_0$ is the global intercept of the regression equation and is assumed to follow a normal distribution with mean $\\mu_{\\beta_0}$ and standard deviation $\\sigma_{\\beta_0}$. $\\beta_1$ represents a regression slope for a variable $x_1$ (e.g. the H:C ratio). For each of the $k$ predictor variables ($k=2$ for the models with the H:C and O:C ratio as predictor variables, and $k=4$ for the models including in addition the N:C and S:C ratio), there is a seprate $\\beta_k$ (not shown in the figure). The $\\beta_k$ (e.g. $\\beta_1$) are either assumed to follow a normal distribution (A), or a Student-t distribution (B) with mean $\\mu_{\\beta_1}$, standard deviation $\\sigma_{\\beta_1}$, and $\\nu_{\\beta_1}$ degrees of freedom.')}
-knitr::include_graphics("./../figures/rp_regression_distogram_tot.pdf")
-```
-
-\clearpage
-Figure \ref{fig:p-ppc-res} shows the prior predictive check for the slopes of potential predictor variables for the different modeling approaches for the element ratio-based models.
-
-```{r p-ppc-res, fig.align='center', fig.width=9, fig.height=6, out.width="100%", fig.cap='Prior predictive checks for the regression model using element ratio as predictor variables. Columns differentiate different modeling approaches (Gaussian or Student-t prior for slopes, all element ratios as preditor variables or only the H:C and O:C ratio), and rows represent different predictor variables. Lines are 100 random draws from the respective prior distributions.'}
-p_ppc
-```
-
-\clearpage
-Figure \ref{fig:el-comparison-peatland-types-res} shows the peat samples' EAC\textsubscript{POM} and EDC\textsubscript{POM} values of all peat samples for each peatland site.
-
-```{r el-comparison-peatland-types-res, fig.align='center', fig.width=5, fig.height=4.5, out.width="70%", fig.cap='Plots of the EAC$_\\text{POM}$ and EDC$_\\text{POM}$ (average values of replicate measurements) for each peatland site and assigned to different peatland types following information from available studies for the respective sites (table \ref{tab:t-study-sites}) or from own investigations following concepts in \\citet{Rydin.2013}.'}
-d %>%
-  dplyr::left_join(d_sites %>% 
-                     dplyr::select(-site_name) %>%
-                     dplyr::mutate(site_label = factor(site_label, levels = levels(d$site_label))), 
-                   by = c("site_label")) %>%
-  dplyr::filter(!is.na(C)) %>%
-  dplyr::select(site_label, depth_lower, depth_upper, eac_c1, edc_c1, peatland_type, index_eac, index_edc) %>%
-  dplyr::mutate(site_label = factor(site_label, levels = rev(levels(site_label)))) %>%
-  dplyr::rename('EAC[POM]' = "eac_c1", 'EDC[POM]' = "edc_c1") %>%
-  tidyr::pivot_longer(cols = dplyr::all_of(c('EAC[POM]', 'EDC[POM]')), 
-                      names_to = "variable", 
-                      values_to = "values") %>%
-  dplyr::mutate(index = 
-                  dplyr::case_when(
-                    is.na(index_eac) ~ TRUE,
-                    variable == "EAC[POM]" ~ index_eac,
-                    variable == "EDC[POM]" ~ index_edc
-                  )
-  ) %>%
-  ggplot(aes(y = quantities::drop_quantities(values), 
-             x = site_label, 
-             fill = peatland_type,
-             shape = index)) + geom_point() + 
-  facet_wrap(~ variable, labeller = label_parsed) +
-  labs(x = "Peatland site", y = expression(EAC[POM]~or~EDC[POM]~"["*mu*mol~g[C]^{-1}*"]")) +
-  coord_flip() +
-  guides(fill = guide_legend(title = "Peatland type",
-                             override.aes = list(size = 3, shape = c(21, 21))),
-         shape  = guide_legend(title = expression("Potential contribution of iron to the EAC or EDC"<=100~mu*mol~g[C]^{-1}), 
-                               title.position="top")) +
-  scale_fill_grey(start = 0, end = 1) +
-  scale_shape_manual(values = c(21, 24)) +
-  theme(legend.position = "bottom", legend.box="vertical") +
-  scale_y_continuous(breaks = c(0, 500, 1000))
-```
-
-
-\clearpage
-Figure \ref{fig:reg-fe-res} shows scatterplots of the EAC\textsubscript{POM}, EDC\textsubscript{POM}, and EAC\textsubscript{POM}:EDC\textsubscript{POM} ratio versus several peat chemistry indicators.
-
-```{r p-el-variables1-res, fig.align='center', fig.height=4.2, fig.width=8, out.width="\\textwidth", fig.cap='\\textbf{a:} Scatterplots of the EAC\\textsubscript{POM}, EDC\\textsubscript{POM}, and EDC\\textsubscript{POM}:EAC\\textsubscript{POM} ratio versus various peat properties. Element ratios are molar ratios. "HI" is the ratio of the intensities at 1630 and \\SI{1090}{\\wn} from mid infrared spectra (larger values indicate more decomposed peat). C$_\\text{OX}$ is the nominal oxidation state of carbon \\citep{Masiello.2008}. Only samples with a potential contribution of iron to the EAC and EDC $\\le\\SI{100}{\\micro\\mol\\per\\gram\\carbon}$ are shown in all plots.'}
-p_el_variables1_fe
-```
-
-\clearpage
-
-Figure \ref{fig:reg-fe-res} shows Pearson correlation spectra for the EAC\textsubscript{POM} and EDC\textsubscript{POM} using the MIRS for the peat samples.
-
-```{r p-mir-cor-res, fig.align='center', fig.height=4, fig.width=6, out.width="\\textwidth", fig.cap="Pearson correlation spectra for the EAC\\textsubscript{POM} and EDC\\textsubscript{POM}, respectively. Each point on the lines represents the Pearson correlation coefficient at the respective wavenumber. The uppermost grey line is an arbitrary reference MIR spectrum from the data set plotted to facilitate interpretation. Correlation coefficients were computed for samples with a potential contribution of iron to the EAC and EDC $\\le\\SI{100}{\\micro\\mol\\per\\gram\\carbon}$."}
-p_mir_cor
-```
-
-\clearpage
-Figure \ref{fig:reg-fe-res} shows scatterplots of the residuals of the element ratio-based regression models in dependency of the total iron content of the samples.
-
-```{r reg-fe-res, fig.align='center', out.width="100%", fig.width=8, fig.height=7.5, fig.cap='Plot of residuals versus total iron contents for the element ratio-based regression models with the complete data set (\\textbf{A}) and the filtered data set (\\textbf{B}, maximal potential contribution of iron to the EAC and EDC $\\le\\SI{100}{\\micro\\mol\\per\\gram\\carbon}$). Columns contain plots for different modeling approaches and dependent variables (Gaussian or Student-t prior for slopes, EAC\\textsubscript{POM} or EDC\\textsubscript{POM} as dependent variable), and rows represent different predictor variable combinations (only H:C and O:C ratio or all element ratios). The red curves are LOESS smoothers fit to the samples.'}
-# unfiltered data
-p1 <- 
-  dplyr::bind_rows(
-  reg_eac_evaluations[[1]]$m_summary %>%
-    dplyr::mutate(
-      target_var = "EAC[POM]",
-      predictors = "H:C + O:C",
-      prior_slopes = "Gaussian",
-      Fe = d$Fe[!is.na(d$C)]
-    ),
-  reg_eac_evaluations[[2]]$m_summary %>%
-    dplyr::mutate(
-      target_var = "EAC[POM]",
-      predictors = "H:C + O:C + N:C + S:C",
-      prior_slopes = "Gaussian",
-      Fe = d$Fe[!is.na(d$C)]
-    ),
-  reg_eac_evaluations[[3]]$m_summary %>%
-    dplyr::mutate(
-      target_var = "EAC[POM]",
-      predictors = "H:C + O:C",
-      prior_slopes = "Student-t",
-      Fe = d$Fe[!is.na(d$C)]
-    ),
-  reg_eac_evaluations[[4]]$m_summary %>%
-    dplyr::mutate(
-      target_var = "EAC[POM]",
-      predictors = "H:C + O:C + N:C + S:C",
-      prior_slopes = "Student-t",
-      Fe = d$Fe[!is.na(d$C)]
-    ),
-  reg_edc_evaluations[[1]]$m_summary %>%
-    dplyr::mutate(
-      target_var = "EDC[POM]",
-      predictors = "H:C + O:C",
-      prior_slopes = "Gaussian",
-      Fe = d$Fe[!is.na(d$C)]
-    ),
-  reg_edc_evaluations[[2]]$m_summary %>%
-    dplyr::mutate(
-      target_var = "EDC[POM]",
-      predictors = "H:C + O:C + N:C + S:C",
-      prior_slopes = "Gaussian",
-      Fe = d$Fe[!is.na(d$C)]
-    ),
-  reg_edc_evaluations[[3]]$m_summary %>%
-    dplyr::mutate(
-      target_var = "EDC[POM]",
-      predictors = "H:C + O:C",
-      prior_slopes = "Student-t",
-      Fe = d$Fe[!is.na(d$C)]
-    ),
-  reg_edc_evaluations[[4]]$m_summary %>%
-    dplyr::mutate(
-      target_var = "EDC[POM]",
-      predictors = "H:C + O:C + N:C + S:C",
-      prior_slopes = "Student-t",
-      Fe = d$Fe[!is.na(d$C)]
-    )
-) %>%
-  ggplot(aes(x = as.numeric(Fe) * 100, y = residuals_mean)) + 
-  geom_hline(yintercept = 0, colour = "grey") +
-  geom_point() +
-  geom_smooth(colour = "coral", se = FALSE) +
- labs(x = "Total iron content [mass-%]", y = expression("Residuals ["*mu*mol~g[C]^{-1}*"]")) + 
-  facet_grid(predictors ~ prior_slopes + target_var, scales = "free", labeller = label_parsed) +
-  theme(panel.spacing.x = unit(5, "mm"))
-
-# filtered data
-p2 <- 
-  dplyr::bind_rows(
-  reg_eac_evaluations_fe[[1]]$m_summary %>%
-    dplyr::mutate(
-      target_var = "EAC[POM]",
-      predictors = "H:C + O:C",
-      prior_slopes = "Gaussian",
-      Fe = d$Fe[!is.na(d$C) & d$index_eac]
-    ),
-  reg_eac_evaluations_fe[[2]]$m_summary %>%
-    dplyr::mutate(
-      target_var = "EAC[POM]",
-      predictors = "H:C + O:C + N:C + S:C",
-      prior_slopes = "Gaussian",
-      Fe = d$Fe[!is.na(d$C) & d$index_eac]
-    ),
-  reg_eac_evaluations_fe[[3]]$m_summary %>%
-    dplyr::mutate(
-      target_var = "EAC[POM]",
-      predictors = "H:C + O:C",
-      prior_slopes = "Student-t",
-      Fe = d$Fe[!is.na(d$C) & d$index_eac]
-    ),
-  reg_eac_evaluations_fe[[4]]$m_summary %>%
-    dplyr::mutate(
-      target_var = "EAC[POM]",
-      predictors = "H:C + O:C + N:C + S:C",
-      prior_slopes = "Student-t",
-      Fe = d$Fe[!is.na(d$C) & d$index_eac]
-    ),
-  reg_edc_evaluations_fe[[1]]$m_summary %>%
-    dplyr::mutate(
-      target_var = "EDC[POM]",
-      predictors = "H:C + O:C",
-      prior_slopes = "Gaussian",
-      Fe = d$Fe[!is.na(d$C) & d$index_edc]
-    ),
-  reg_edc_evaluations_fe[[2]]$m_summary %>%
-    dplyr::mutate(
-      target_var = "EDC[POM]",
-      predictors = "H:C + O:C + N:C + S:C",
-      prior_slopes = "Gaussian",
-      Fe = d$Fe[!is.na(d$C) & d$index_edc]
-    ),
-  reg_edc_evaluations_fe[[3]]$m_summary %>%
-    dplyr::mutate(
-      target_var = "EDC[POM]",
-      predictors = "H:C + O:C",
-      prior_slopes = "Student-t",
-      Fe = d$Fe[!is.na(d$C) & d$index_edc]
-    ),
-  reg_edc_evaluations_fe[[4]]$m_summary %>%
-    dplyr::mutate(
-      target_var = "EDC[POM]",
-      predictors = "H:C + O:C + N:C + S:C",
-      prior_slopes = "Student-t",
-      Fe = d$Fe[!is.na(d$C) & d$index_edc]
-    )
-) %>%
-  ggplot(aes(x = as.numeric(Fe) * 100, y = residuals_mean)) + 
-    geom_hline(yintercept = 0, colour = "grey") +
-  geom_point() +
-  geom_smooth(colour = "coral", se = FALSE) +
-  labs(x = "Total iron content [mass-%]", y = expression("Residuals ["*mu*mol~g[C]^{-1}*"]")) + 
-  facet_grid(predictors ~ prior_slopes + target_var, scales = "free", labeller = label_parsed) +
-  theme(panel.spacing.x = unit(5, "mm"))
-
-cowplot::plot_grid(plotlist = list(p1, p2), 
-                   ncol = 1, 
-                   labels = LETTERS[1:2])
-```
-
-\clearpage
-Figure \ref{fig:cal-fe-res} shows scatterplots of the residuals of the MIRS-based regression models in dependency of the total iron content of the samples.
-
-```{r cal-fe-res, fig.align='center', out.width="80%", fig.width=9, fig.height=10, fig.cap='Plot of residuals versus total iron contents for the MIRS-based regression models with the complete data set (\\textbf{A}) and the filtered data set (\\textbf{B}, maximal potential contribution of iron to the EAC and EDC $\\le\\SI{100}{\\micro\\mol\\per\\gram\\carbon}$). Columns contain plots for different dependent variables (EAC\\textsubscript{POM} or EDC\\textsubscript{POM}), and rows represent different modeling approaches (Bayesian regularization or PLSR as methods to compute regression models, using the non derived or first derivative of the mid infrared spectra as predictor variables, transforming the dependent variable (EDC\\textsubscript{POM} only) by dividing it by HI$_\\text{1630/1090}$). The red lines are LOESS smoothers fit to the samples.'}
-
-# unfiltered data
-p1 <- 
-  dplyr::bind_rows(
-    cal_eac_br_evaluations[[1]]$m_summary %>%
-      dplyr::mutate(
-        target_var = "EAC[POM]",
-        derived = '"Not derived"',
-        approach = '"Bayesian regularization"',
-        transformation = "",
-        Fe = d$Fe[!is.na(d$C)]
-      ),
-    cal_eac_br_evaluations[[2]]$m_summary %>%
-      dplyr::mutate(
-        target_var = "EAC[POM]",
-        derived = '"First derivative"',
-        approach = '"Bayesian regularization"',
-        transformation = "",
-        Fe = d$Fe[!is.na(d$C)]
-      ),
-    cal_eac_plsr_evaluations[[1]]$m_summary %>%
-      dplyr::mutate(
-        target_var = "EAC[POM]",
-        derived = '"Not derived"',
-        approach = "PLSR",
-        transformation = "",
-        Fe = d$Fe[!is.na(d$C)]
-      ),
-    cal_eac_plsr_evaluations[[2]]$m_summary %>%
-      dplyr::mutate(
-        target_var = "EAC[POM]",
-        derived = '"First derivative"',
-        approach = "PLSR",
-        transformation = "",
-        Fe = d$Fe[!is.na(d$C)]
-      ),
-    cal_edc_br_evaluations[[1]]$m_summary %>%
-      dplyr::mutate(
-        target_var = "EDC[POM]",
-        derived = '"Not derived"',
-        approach = '"Bayesian regularization"',
-        transformation = "",
-        Fe = d$Fe[!is.na(d$C)]
-      ),
-    cal_edc_br_evaluations[[2]]$m_summary %>%
-      dplyr::mutate(
-        target_var = "EDC[POM]",
-        derived = '"First derivative"',
-        approach = '"Bayesian regularization"',
-        transformation = "",
-        Fe = d$Fe[!is.na(d$C)]
-      ),
-    cal_edc_plsr_evaluations[[1]]$m_summary %>%
-      dplyr::mutate(
-        target_var = "EDC[POM]",
-        derived = '"Not derived"',
-        approach = "PLSR",
-        transformation = "",
-        Fe = d$Fe[!is.na(d$C)]
-      ),
-    cal_edc_plsr_evaluations[[2]]$m_summary %>%
-      dplyr::mutate(
-        target_var = "EDC[POM]",
-        derived = '"First derivative"',
-        approach = "PLSR",
-        transformation = "",
-        Fe = d$Fe[!is.na(d$C)]
-      ),
-    cal_edc_hi_br_evaluations[[1]]$m_summary %>%
-      dplyr::mutate(
-        target_var = "EDC[POM]",
-        derived = '"Not derived"',
-        approach = '"Bayesian regularization"',
-        transformation = "Divided by HI",
-        Fe = d$Fe[!is.na(d$C)]
-      ),
-    cal_edc_hi_br_evaluations[[2]]$m_summary %>%
-      dplyr::mutate(
-        target_var = "EDC[POM]",
-        derived = '"First derivative"',
-        approach = '"Bayesian regularization"',
-        transformation = '"Divided by HI"',
-        Fe = d$Fe[!is.na(d$C)]
-      ),
-    cal_edc_hi_plsr_evaluations[[1]]$m_summary %>%
-      dplyr::mutate(
-        target_var = "EDC[POM]",
-        derived = '"Not derived"',
-        approach = "PLSR",
-        transformation = '"Divided by HI"',
-        Fe = d$Fe[!is.na(d$C)]
-      ),
-    cal_edc_hi_plsr_evaluations[[2]]$m_summary %>%
-      dplyr::mutate(
-        target_var = "EDC[POM]",
-        derived = '"First derivative"',
-        approach = "PLSR",
-        transformation = '"Divided by HI"',
-        Fe = d$Fe[!is.na(d$C)]
-      )
-  ) %>%
+bibkeys <-
+  bibkeys %>%
   dplyr::mutate(
-    target_var = factor(target_var, levels = c("EAC[POM]", "EDC[POM]")),
-    derived = factor(derived, levels = c('"Not derived"', '"First derivative"')),
-    approach = factor(approach, levels = c('"Bayesian regularization"', "PLSR")),
-    transformation = factor(transformation, levels = c("", '"Divided by HI"'))
-  ) %>%
-  ggplot(aes(x = as.numeric(Fe) * 100, y = residuals_mean)) + 
-  geom_hline(yintercept = 0, colour = "grey") +
-  geom_point() +
-  geom_smooth(colour = "coral", se = FALSE) +
-  labs(x = "Total iron content [mass-%]", y = expression("Residuals ["*mu*mol~g[C]^{-1}*"]")) + 
-  facet_grid(approach + derived + transformation ~ target_var, scales = "free", labeller = label_parsed) +
-  theme(panel.spacing.x = unit(5, "mm"))
-
-# filtered data
-p2 <- 
-  dplyr::bind_rows(
-    cal_eac_br_evaluations_fe[[1]]$m_summary %>%
-      dplyr::mutate(
-        target_var = "EAC[POM]",
-        derived = '"Not derived"',
-        approach = '"Bayesian regularization"',
-        transformation = "",
-        Fe = d$Fe[!is.na(d$C) & d$index_eac]
-      ),
-    cal_eac_br_evaluations_fe[[2]]$m_summary %>%
-      dplyr::mutate(
-        target_var = "EAC[POM]",
-        derived = '"First derivative"',
-        approach = '"Bayesian regularization"',
-        transformation = "",
-        Fe = d$Fe[!is.na(d$C) & d$index_eac]
-      ),
-    cal_eac_plsr_evaluations_fe[[1]]$m_summary %>%
-      dplyr::mutate(
-        target_var = "EAC[POM]",
-        derived = '"Not derived"',
-        approach = "PLSR",
-        transformation = "",
-        Fe = d$Fe[!is.na(d$C) & d$index_eac]
-      ),
-    cal_eac_plsr_evaluations_fe[[2]]$m_summary %>%
-      dplyr::mutate(
-        target_var = "EAC[POM]",
-        derived = '"First derivative"',
-        approach = "PLSR",
-        transformation = "",
-        Fe = d$Fe[!is.na(d$C) & d$index_eac]
-      ),
-    cal_edc_br_evaluations_fe[[1]]$m_summary %>%
-      dplyr::mutate(
-        target_var = "EDC[POM]",
-        derived = '"Not derived"',
-        approach = '"Bayesian regularization"',
-        transformation = "",
-        Fe = d$Fe[!is.na(d$C) & d$index_edc]
-      ),
-    cal_edc_br_evaluations_fe[[2]]$m_summary %>%
-      dplyr::mutate(
-        target_var = "EDC[POM]",
-        derived = '"First derivative"',
-        approach = '"Bayesian regularization"',
-        transformation = "",
-        Fe = d$Fe[!is.na(d$C) & d$index_edc]
-      ),
-    cal_edc_plsr_evaluations_fe[[1]]$m_summary %>%
-      dplyr::mutate(
-        target_var = "EDC[POM]",
-        derived = '"Not derived"',
-        approach = "PLSR",
-        transformation = "",
-        Fe = d$Fe[!is.na(d$C) & d$index_edc]
-      ),
-    cal_edc_plsr_evaluations_fe[[2]]$m_summary %>%
-      dplyr::mutate(
-        target_var = "EDC[POM]",
-        derived = '"First derivative"',
-        approach = "PLSR",
-        transformation = "",
-        Fe = d$Fe[!is.na(d$C) & d$index_edc]
-      ),
-    cal_edc_hi_br_evaluations_fe[[1]]$m_summary %>%
-      dplyr::mutate(
-        target_var = "EDC[POM]",
-        derived = '"Not derived"',
-        approach = '"Bayesian regularization"',
-        transformation = '"Divided by HI"',
-        Fe = d$Fe[!is.na(d$C) & d$index_edc]
-      ),
-    cal_edc_hi_br_evaluations_fe[[2]]$m_summary %>%
-      dplyr::mutate(
-        target_var = "EDC[POM]",
-        derived = '"First derivative"',
-        approach = '"Bayesian regularization"',
-        transformation = "Divided by HI",
-        Fe = d$Fe[!is.na(d$C) & d$index_edc]
-      ),
-    cal_edc_hi_plsr_evaluations_fe[[1]]$m_summary %>%
-      dplyr::mutate(
-        target_var = "EDC[POM]",
-        derived = '"Not derived"',
-        approach = "PLSR",
-        transformation = '"Divided by HI"',
-        Fe = d$Fe[!is.na(d$C) & d$index_edc]
-      ),
-    cal_edc_hi_plsr_evaluations_fe[[2]]$m_summary %>%
-      dplyr::mutate(
-        target_var = "EDC[POM]",
-        derived = '"First derivative"',
-        approach = "PLSR",
-        transformation = '"Divided by HI"',
-        Fe = d$Fe[!is.na(d$C) & d$index_edc]
-      )
-  ) %>%
-  dplyr::mutate(
-    target_var = factor(target_var, levels = c("EAC[POM]", "EDC[POM]")),
-    derived = factor(derived, levels = c('"Not derived"', '"First derivative"')),
-    approach = factor(approach, levels = c('"Bayesian regularization"', "PLSR")),
-    transformation = factor(transformation, levels = c("", '"Divided by HI"'))
-  ) %>%
-  ggplot(aes(x = as.numeric(Fe) * 100, y = residuals_mean)) + 
-  geom_hline(yintercept = 0, colour = "grey") +
-  geom_point() +
-  geom_smooth(colour = "coral", se = FALSE) +
-  labs(x = "Total iron content [mass-%]", y = expression("Residuals ["*mu*mol~g[C]^{-1}*"]")) + 
-  facet_grid(approach + derived + transformation ~ target_var, scales = "free", labeller = label_parsed) +
-  theme(panel.spacing.x = unit(5, "mm"))
-  
-
-cowplot::plot_grid(plotlist = list(p1, p2), 
-                   ncol = 2, 
-                   labels = LETTERS[1:2])
-```
-
-
-\clearpage
-Figure \ref{fig:p-y-yhat-res} shows scatterplots of measured versus predicted values for the element ratio-based and MIRS-based regression models for the filtered data set which were interpreted in detail throughout the main text.
-
-```{r p-y-yhat-res, fig.align='center', fig.height=4.5, fig.width=5, out.width="0.6\\textwidth", fig.cap='Plot of measured values versus fitted values for the regression models predicting the EAC\\textsubscript{POM} and EDC\\textsubscript{POM} using the filtered data set. Rows contain plots for the two different modeling approaches: "Element ratios" indicates the regression models using all four element ratios (H:C, O:C, N:S, S:C ratio) as predictor variables, and "MIRS" the full regression models using non-derived mid infrared spectra. Error bars represent 95\\% predictive intervals for the measured and predicted values. Points on the diagonal lines represents identical measured and fitted values.'}
-p_y_yhat
-```
-
-\clearpage
-Figure \ref{fig:p-y-yhat-reg-res} shows plots of measured versus fitted values for all computed element ratio-based regression models.
-
-```{r p-y-yhat-reg-res, fig.align='center', out.width="100%", fig.width=8, fig.height=8, fig.cap='Plot of measured versus fitted values (both in \\si{\\micro\\mol\\per\\gram\\carbon}) for the element ratio-based regression models with the complete data set (\\textbf{A}) and the filtered data set (\\textbf{B}, maximal potential contribution of iron to the EAC and EDC $\\le\\SI{100}{\\micro\\mol\\per\\gram\\carbon}$). Columns contain plots for different modeling approaches and dependent variables (Gaussian or Student-t prior for slopes, EAC\\textsubscript{POM} or EDC\\textsubscript{POM} as dependent variable), and rows represent different predictor variable combinations (only H:C and O:C ratio or all element ratios). Error bars represent 95\\% predictive intervals for the measured and predicted values. Points on the diagonal lines represents identical measured and fitted values.'}
-
-# unfiltered data
-p1 <- 
-dplyr::bind_rows(
-  reg_eac_evaluations[[1]]$m_summary %>%
-    dplyr::mutate(
-      target_var = "EAC[POM]",
-      predictors = "H:C + O:C",
-      prior_slopes = "Gaussian",
-      Fe = d$Fe[!is.na(d$C)]
-    ),
-  reg_eac_evaluations[[2]]$m_summary %>%
-    dplyr::mutate(
-      target_var = "EAC[POM]",
-      predictors = "H:C + O:C + N:C + S:C",
-      prior_slopes = "Gaussian",
-      Fe = d$Fe[!is.na(d$C)]
-    ),
-  reg_eac_evaluations[[3]]$m_summary %>%
-    dplyr::mutate(
-      target_var = "EAC[POM]",
-      predictors = "H:C + O:C",
-      prior_slopes = "Student-t",
-      Fe = d$Fe[!is.na(d$C)]
-    ),
-  reg_eac_evaluations[[4]]$m_summary %>%
-    dplyr::mutate(
-      target_var = "EAC[POM]",
-      predictors = "H:C + O:C + N:C + S:C",
-      prior_slopes = "Student-t",
-      Fe = d$Fe[!is.na(d$C)]
-    ),
-  reg_edc_evaluations[[1]]$m_summary %>%
-    dplyr::mutate(
-      target_var = "EDC[POM]",
-      predictors = "H:C + O:C",
-      prior_slopes = "Gaussian",
-      Fe = d$Fe[!is.na(d$C)]
-    ),
-  reg_edc_evaluations[[2]]$m_summary %>%
-    dplyr::mutate(
-      target_var = "EDC[POM]",
-      predictors = "H:C + O:C + N:C + S:C",
-      prior_slopes = "Gaussian",
-      Fe = d$Fe[!is.na(d$C)]
-    ),
-  reg_edc_evaluations[[3]]$m_summary %>%
-    dplyr::mutate(
-      target_var = "EDC[POM]",
-      predictors = "H:C + O:C",
-      prior_slopes = "Student-t",
-      Fe = d$Fe[!is.na(d$C)]
-    ),
-  reg_edc_evaluations[[4]]$m_summary %>%
-    dplyr::mutate(
-      target_var = "EDC[POM]",
-      predictors = "H:C + O:C + N:C + S:C",
-      prior_slopes = "Student-t",
-      Fe = d$Fe[!is.na(d$C)]
-    )
-) %>%
-  ggplot(aes(x = yhat_mean, y = y_mean, 
-             ymin = y_lwr, ymax = y_upr, 
-             xmin = yhat_lwr, xmax = yhat_upr)) + 
-  geom_abline(intercept = 0, slope = 1, colour = "grey50") +
-  geom_errorbar(colour = "grey") +
-  geom_errorbarh(colour = "grey") +
-  geom_point() +
-  labs(x = "Predicted", y = "Measured") + 
-  facet_grid(predictors ~ prior_slopes + target_var, scales = "free", labeller = label_parsed)
-
-# filtered data
-p2 <- 
-dplyr::bind_rows(
-  reg_eac_evaluations_fe[[1]]$m_summary %>%
-    dplyr::mutate(
-      target_var = "EAC[POM]",
-      predictors = "H:C + O:C",
-      prior_slopes = "Gaussian",
-      Fe = d$Fe[!is.na(d$C) & d$index_eac]
-    ),
-  reg_eac_evaluations_fe[[2]]$m_summary %>%
-    dplyr::mutate(
-      target_var = "EAC[POM]",
-      predictors = "H:C + O:C + N:C + S:C",
-      prior_slopes = "Gaussian",
-      Fe = d$Fe[!is.na(d$C) & d$index_eac]
-    ),
-  reg_eac_evaluations_fe[[3]]$m_summary %>%
-    dplyr::mutate(
-      target_var = "EAC[POM]",
-      predictors = "H:C + O:C",
-      prior_slopes = "Student-t",
-      Fe = d$Fe[!is.na(d$C) & d$index_eac]
-    ),
-  reg_eac_evaluations_fe[[4]]$m_summary %>%
-    dplyr::mutate(
-      target_var = "EAC[POM]",
-      predictors = "H:C + O:C + N:C + S:C",
-      prior_slopes = "Student-t",
-      Fe = d$Fe[!is.na(d$C) & d$index_eac]
-    ),
-  reg_edc_evaluations_fe[[1]]$m_summary %>%
-    dplyr::mutate(
-      target_var = "EDC[POM]",
-      predictors = "H:C + O:C",
-      prior_slopes = "Gaussian",
-      Fe = d$Fe[!is.na(d$C) & d$index_edc]
-    ),
-  reg_edc_evaluations_fe[[2]]$m_summary %>%
-    dplyr::mutate(
-      target_var = "EDC[POM]",
-      predictors = "H:C + O:C + N:C + S:C",
-      prior_slopes = "Gaussian",
-      Fe = d$Fe[!is.na(d$C) & d$index_edc]
-    ),
-  reg_edc_evaluations_fe[[3]]$m_summary %>%
-    dplyr::mutate(
-      target_var = "EDC[POM]",
-      predictors = "H:C + O:C",
-      prior_slopes = "Student-t",
-      Fe = d$Fe[!is.na(d$C) & d$index_edc]
-    ),
-  reg_edc_evaluations_fe[[4]]$m_summary %>%
-    dplyr::mutate(
-      target_var = "EDC[POM]",
-      predictors = "H:C + O:C + N:C + S:C",
-      prior_slopes = "Student-t",
-      Fe = d$Fe[!is.na(d$C) & d$index_edc]
-    )
-) %>%
-  ggplot(aes(x = yhat_mean, y = y_mean, 
-             ymin = y_lwr, ymax = y_upr, 
-             xmin = yhat_lwr, xmax = yhat_upr)) +
-  geom_abline(intercept = 0, slope = 1, colour = "grey50") + 
-  geom_errorbar(colour = "grey") +
-  geom_errorbarh(colour = "grey") +
-  geom_point() +
-  labs(x = "Predicted", y = "Measured") + 
-  facet_grid(predictors ~ prior_slopes + target_var, scales = "free", labeller = label_parsed)
-
-cowplot::plot_grid(plotlist = list(p1, p2), 
-                   ncol = 1, 
-                   labels = LETTERS[1:2])
-```
-
-\clearpage
-Figure \ref{fig:p-y-yhat-cal-res} shows plots of measured versus fitted values for all computed MIRS-based regression models.
-
-```{r p-y-yhat-cal-res, fig.align='center', out.width="80%", fig.width=9, fig.height=13, fig.cap='Plot of measured versus fitted values (both in \\si{\\micro\\mol\\per\\gram\\carbon}) for the MIRS-based regression models with the complete data set (\\textbf{A}) and the filtered data set (\\textbf{B}, maximal potential contribution of iron to the EAC and EDC $\\le\\SI{100}{\\micro\\mol\\per\\gram\\carbon}$). Columns contain plots for different dependent variables (EAC\\textsubscript{POM} or EDC\\textsubscript{POM}), and rows represent different modeling approaches (Bayesian regularization or PLSR as methods to compute regression models, using the non derived or first derivative of the mid infrared spectra as predictor variables, transforming the dependent variable (EDC only) by dividing it by HI$_\\text{1630/1090}$). Error bars represent 95\\% predictive intervals for the measured and predicted values. Points on the diagonal lines represents identical measured and fitted values.'}
-
-# unfiltered data
-p1 <- 
-dplyr::bind_rows(
-  cal_eac_br_evaluations[[1]]$m_summary %>%
-    dplyr::mutate(
-      target_var = "EAC[POM]",
-      derived = '"Not derived"',
-      approach = '"Bayesian regularization"',
-      transformation = ""
-    ),
-  cal_eac_br_evaluations[[2]]$m_summary %>%
-    dplyr::mutate(
-      target_var = "EAC[POM]",
-      derived = '"First derivative"',
-      approach = '"Bayesian regularization"',
-      transformation = ""
-    ),
-  cal_eac_plsr_evaluations[[1]]$m_summary %>%
-    dplyr::mutate(
-      target_var = "EAC[POM]",
-      derived = '"Not derived"',
-      approach = "PLSR",
-      transformation = ""
-    ),
-  cal_eac_plsr_evaluations[[2]]$m_summary %>%
-    dplyr::mutate(
-      target_var = "EAC[POM]",
-      derived = '"First derivative"',
-      approach = "PLSR",
-      transformation = ""
-    ),
-  cal_edc_br_evaluations[[1]]$m_summary %>%
-    dplyr::mutate(
-      target_var = "EDC[POM]",
-      derived = '"Not derived"',
-      approach = '"Bayesian regularization"',
-      transformation = ""
-    ),
-  cal_edc_br_evaluations[[2]]$m_summary %>%
-    dplyr::mutate(
-      target_var = "EDC[POM]",
-      derived = '"First derivative"',
-      approach = '"Bayesian regularization"',
-      transformation = ""
-    ),
-  cal_edc_plsr_evaluations[[1]]$m_summary %>%
-    dplyr::mutate(
-      target_var = "EDC[POM]",
-      derived = '"Not derived"',
-      approach = "PLSR",
-      transformation = ""
-    ),
-  cal_edc_plsr_evaluations[[2]]$m_summary %>%
-    dplyr::mutate(
-      target_var = "EDC[POM]",
-      derived = '"First derivative"',
-      approach = "PLSR",
-      transformation = ""
-    ),
-  cal_edc_hi_br_evaluations[[1]]$m_summary %>%
-    dplyr::mutate(
-      target_var = "EDC[POM]",
-      derived = '"Not derived"',
-      approach = '"Bayesian regularization"',
-      transformation = '"Divided by HI"'
-    ),
-  cal_edc_hi_br_evaluations[[2]]$m_summary %>%
-    dplyr::mutate(
-      target_var = "EDC[POM]",
-      derived = '"First derivative"',
-      approach = '"Bayesian regularization"',
-      transformation = '"Divided by HI"'
-    ),
-  cal_edc_hi_plsr_evaluations[[1]]$m_summary %>%
-    dplyr::mutate(
-      target_var = "EDC[POM]",
-      derived = '"Not derived"',
-      approach = "PLSR",
-      transformation = '"Divided by HI"'
-    ),
-  cal_edc_hi_plsr_evaluations[[2]]$m_summary %>%
-    dplyr::mutate(
-      target_var = "EDC[POM]",
-      derived = '"First derivative"',
-      approach = "PLSR",
-      transformation = '"Divided by HI"'
-    ),
-) %>%
-  dplyr::mutate(
-    target_var = factor(target_var, levels = c("EAC[POM]", "EDC[POM]")),
-    derived = factor(derived, levels = c('"Not derived"', '"First derivative"')),
-    approach = factor(approach, levels = c('"Bayesian regularization"', "PLSR")),
-    transformation = factor(transformation, levels = c("", '"Divided by HI"'))
-  ) %>%
-  ggplot(aes(x = yhat_mean, y = y_mean, 
-             ymin = y_lwr, ymax = y_upr, 
-             xmin = yhat_lwr, xmax = yhat_upr)) + 
-  geom_errorbar(colour = "grey") +
-  geom_errorbarh(colour = "grey") +
-  geom_point() +
-  labs(x = "Predicted", y = "Measured") + 
-  facet_grid(approach + derived + transformation ~ target_var, scales = "free", labeller = label_parsed) +
-  geom_abline(intercept = 0, slope = 1) +
-  theme(panel.spacing.x = unit(6.5, "mm"))
-
-# filtered data
-p2 <- 
-dplyr::bind_rows(
-  cal_eac_br_evaluations_fe[[1]]$m_summary %>%
-    dplyr::mutate(
-      target_var = "EAC[POM]",
-      derived = '"Not derived"',
-      approach = '"Bayesian regularization"',
-      transformation = ""
-    ),
-  cal_eac_br_evaluations_fe[[2]]$m_summary %>%
-    dplyr::mutate(
-      target_var = "EAC[POM]",
-      derived = '"First derivative"',
-      approach = '"Bayesian regularization"',
-      transformation = ""
-    ),
-  cal_eac_plsr_evaluations_fe[[1]]$m_summary %>%
-    dplyr::mutate(
-      target_var = "EAC[POM]",
-      derived = '"Not derived"',
-      approach = "PLSR",
-      transformation = ""
-    ),
-  cal_eac_plsr_evaluations_fe[[2]]$m_summary %>%
-    dplyr::mutate(
-      target_var = "EAC[POM]",
-      derived = '"First derivative"',
-      approach = "PLSR",
-      transformation = ""
-    ),
-  cal_edc_br_evaluations_fe[[1]]$m_summary %>%
-    dplyr::mutate(
-      target_var = "EDC[POM]",
-      derived = '"Not derived"',
-      approach = '"Bayesian regularization"',
-      transformation = ""
-    ),
-  cal_edc_br_evaluations_fe[[2]]$m_summary %>%
-    dplyr::mutate(
-      target_var = "EDC[POM]",
-      derived = '"First derivative"',
-      approach = '"Bayesian regularization"',
-      transformation = ""
-    ),
-  cal_edc_plsr_evaluations_fe[[1]]$m_summary %>%
-    dplyr::mutate(
-      target_var = "EDC[POM]",
-      derived = '"Not derived"',
-      approach = "PLSR",
-      transformation = ""
-    ),
-  cal_edc_plsr_evaluations_fe[[2]]$m_summary %>%
-    dplyr::mutate(
-      target_var = "EDC[POM]",
-      derived = '"First derivative"',
-      approach = "PLSR",
-      transformation = ""
-    ),
-  cal_edc_hi_br_evaluations_fe[[1]]$m_summary %>%
-    dplyr::mutate(
-      target_var = "EDC[POM]",
-      derived = '"Not derived"',
-      approach = '"Bayesian regularization"',
-      transformation = '"Divided by HI"'
-    ),
-  cal_edc_hi_br_evaluations_fe[[2]]$m_summary %>%
-    dplyr::mutate(
-      target_var = "EDC[POM]",
-      derived = '"First derivative"',
-      approach = '"Bayesian regularization"',
-      transformation = '"Divided by HI"'
-    ),
-  cal_edc_hi_plsr_evaluations_fe[[1]]$m_summary %>%
-    dplyr::mutate(
-      target_var = "EDC[POM]",
-      derived = '"Not derived"',
-      approach = "PLSR",
-      transformation = '"Divided by HI"'
-    ),
-  cal_edc_hi_plsr_evaluations_fe[[2]]$m_summary %>%
-    dplyr::mutate(
-      target_var = "EDC[POM]",
-      derived = '"First derivative"',
-      approach = "PLSR",
-      transformation = '"Divided by HI"'
-    ),
-) %>%
-  dplyr::mutate(
-    target_var = factor(target_var, levels = c("EAC[POM]", "EDC[POM]")),
-    derived = factor(derived, levels = c('"Not derived"', '"First derivative"')),
-    approach = factor(approach, levels = c('"Bayesian regularization"', "PLSR")),
-    transformation = factor(transformation, levels = c("", '"Divided by HI"'))
-  ) %>%
-  ggplot(aes(x = yhat_mean, y = y_mean, 
-             ymin = y_lwr, ymax = y_upr, 
-             xmin = yhat_lwr, xmax = yhat_upr)) + 
-  geom_errorbar(colour = "grey") +
-  geom_errorbarh(colour = "grey") +
-  geom_point() +
-  labs(x = "Predicted", y = "Measured") + 
-  facet_grid(approach + derived + transformation ~ target_var, scales = "free", labeller = label_parsed) +
-  geom_abline(intercept = 0, slope = 1) +
-  theme(panel.spacing.x = unit(6.5, "mm"))
-
-cowplot::plot_grid(plotlist = list(p1, p2), 
-                   ncol = 2, 
-                   labels = LETTERS[1:2])
-```
-
-\clearpage
-Figure \ref{fig:p-cal-elpd-res} shows plots of the expected sum of log predictive densities (ELPD) estimated by PSIS-LOO [@Piironen.2020; @Piironen.2019] for the MIRS-based regression models (reference models) and the projected models.
-
-```{r p-cal-elpd-res, fig.align='center', fig.height=6.5, fig.width=6, out.width="0.75\\textwidth", fig.cap="Plot of the expected sum of log predictive densities (ELPD) for the MIRS-based regression models (reference models) and the projected models with the complete data set (top row) and the filtered data set (bottom row, maximal potential contribution of iron to the EAC and EDC $\\le\\SI{100}{\\micro\\mol\\per\\gram\\carbon}$). Points reresent the average ELPD, and error bars its standard error. The y axis differentiates modeling approaches (Bayesian regularization or PLSR as regression model, not derived or first derivative of spectra as predictor variables, transformation of the EDC by division by HI$_\\text{1630/1090}$). Note that the ELPD values are biased since not for all models the underlying assumptions were met."}
-## PSIS-LOO ELPD all MIRS-based regression models
-
-# compute the PSIS-LOO ELPD
-cal_proj <- c(cal_plsr_proj, cal_br_proj)
-
-cal_elpd_ref <- 
-  purrr::map_df(seq_along(cal_ref_evaluations), function(i) {
-    
-    tibble::tibble(
-      reference_model = "Reference",
-      target_var = rep(c(rep("EAC[POM]", 2), rep("EDC[POM]", 4)), 2)[[i]],
-      derived = rep(c("Not derived", "First derivative"), 6)[[i]],
-      approach = rep(c("PLSR", "Bayesian regularization"), each = 6)[[i]],
-      transformation = rep(c(rep("", 4), rep("Divided by HI", 2)), 2)[[i]],
-      filtered = "Unfiltered",
-      elpd_mean = 
-        projpred::varsel_stats(cal_proj[[i]]$cal_vs, stats = "elpd", type = "mean", nv_max = cal_proj[[i]]$cal_vs_ss)$elpd %>% dplyr::last() - projpred::varsel_stats(cal_proj[[i]]$cal_vs, stats = "elpd", type = "mean", nv_max = cal_proj[[i]]$cal_vs_ss, deltas = TRUE, baseline = "ref")$elpd %>% dplyr::last(),
-      elpd_se = cal_ref_evaluations[[i]]$m_loo$estimates[1, 2]
-    )
-    
-  })
-
-cal_elpd_proj <- 
-  purrr::map_df(seq_along(cal_proj), function(i) {
-    
-    # get the elpd_loo and its SE
-    elpd_mean <- 
-      elpd_se <- cal_ref_evaluations[[i]]$m_loo$estimates[1, 2]
-    
-    tibble::tibble(
-      reference_model = "Projected",
-      target_var = rep(c(rep("EAC[POM]", 2), rep("EDC[POM]", 4)), 2)[[i]],
-      derived = rep(c("Not derived", "First derivative"), 6)[[i]],
-      approach = rep(c("PLSR", "Bayesian regularization"), each = 6)[[i]],
-      transformation = rep(c(rep("", 4), rep("Divided by HI", 2)), 2)[[i]],
-      filtered = "Unfiltered",
-      elpd_mean = projpred::varsel_stats(cal_proj[[i]]$cal_vs, stats = "elpd", type = "mean", nv_max = cal_proj[[i]]$cal_vs_ss)$elpd %>% dplyr::last(),
-      elpd_se = projpred::varsel_stats(cal_proj[[i]]$cal_vs, stats = "elpd", type = "se", nv_max = cal_proj[[i]]$cal_vs_ss)$elpd %>% dplyr::last()
-    )
-    
-  })
-
-# compute the PSIS-LOO ELPD
-cal_proj <- c(cal_plsr_proj_fe, cal_br_proj_fe)
-
-cal_elpd_ref_fe <- 
-  purrr::map_df(seq_along(cal_ref_evaluations), function(i) {
-    
-    tibble::tibble(
-      reference_model = "Reference",
-      target_var = rep(c(rep("EAC[POM]", 2), rep("EDC[POM]", 4)), 2)[[i]],
-      derived = rep(c("Not derived", "First derivative"), 6)[[i]],
-      approach = rep(c("PLSR", "Bayesian regularization"), each = 6)[[i]],
-      transformation = rep(c(rep("", 4), rep("Divided by HI", 2)), 2)[[i]],
-      filtered = "Filtered",
-      elpd_mean = 
-        projpred::varsel_stats(cal_proj[[i]]$cal_vs, 
-                               stats = "elpd", 
-                               type = "mean", 
-                               nv_max = cal_proj[[i]]$cal_vs_ss)$elpd %>%
-        dplyr::last() - projpred::varsel_stats(cal_proj[[i]]$cal_vs, 
-                                               stats = "elpd", 
-                                               type = "mean", 
-                                               nv_max = cal_proj[[i]]$cal_vs_ss, 
-                                               deltas = TRUE, 
-                                               baseline = "ref")$elpd %>%
-        dplyr::last(),
-      elpd_se = cal_ref_evaluations_fe[[i]]$m_loo$estimates[1, 2]
-    )
-    
-  })
-
-cal_elpd_proj_fe <- 
-  purrr::map_df(seq_along(cal_proj), function(i) {
-    
-    # get the elpd_loo and its SE
-    elpd_mean <- 
-      elpd_se <- cal_ref_evaluations[[i]]$m_loo$estimates[1, 2]
-    
-    tibble::tibble(
-      reference_model = "Projected",
-      target_var = rep(c(rep("EAC[POM]", 2), rep("EDC[POM]", 4)), 2)[[i]],
-      derived = rep(c("Not derived", "First derivative"), 6)[[i]],
-      approach = rep(c("PLSR", "Bayesian regularization"), each = 6)[[i]],
-      transformation = rep(c(rep("", 4), rep("Divided by HI", 2)), 2)[[i]],
-      filtered = "Filtered",
-      elpd_mean = projpred::varsel_stats(cal_proj[[i]]$cal_vs, 
-                                         stats = "elpd", 
-                                         type = "mean", 
-                                         nv_max = cal_proj[[i]]$cal_vs_ss)$elpd %>%
-        dplyr::last(),
-      elpd_se = projpred::varsel_stats(cal_proj[[i]]$cal_vs, 
-                                       stats = "elpd", 
-                                       type = "se", 
-                                       nv_max = cal_proj[[i]]$cal_vs_ss)$elpd %>%
-        dplyr::last()
-    )
-    
-  })
-
-# plot
-dplyr::bind_rows(cal_elpd_ref, 
-                 cal_elpd_proj, 
-                 cal_elpd_ref_fe, 
-                 cal_elpd_proj_fe) %>%
-  dplyr::mutate(
-    modeling_approach = factor(paste0(approach, " ", derived, " ", transformation), levels = c("Bayesian regularization Not derived ", "Bayesian regularization Not derived Divided by HI", "Bayesian regularization First derivative ", "Bayesian regularization First derivative Divided by HI", "PLSR Not derived ", "PLSR Not derived Divided by HI", "PLSR First derivative ", "PLSR First derivative Divided by HI") %>% rev()),
-    filtered = factor(filtered, levels = c("Unfiltered", "Filtered"))
-  ) %>%
-  ggplot(aes(x = elpd_mean, xmin = elpd_mean - elpd_se, xmax = elpd_mean + elpd_se, 
-             y = modeling_approach, 
-             fill = reference_model)) + 
-  geom_errorbarh(height = 0.1, colour = "grey") +
-  geom_point(shape = 21) + 
-  facet_grid(filtered ~ target_var, scales = "free_x", labeller = label_parsed) + 
-  guides(fill = guide_legend(title = "Reference model or projected model?", title.position="top")) +
-  scale_fill_grey(start = 0, end = 1) +
-  labs(y = "Modeling approach\n", x = "ELPD") +
-  theme(legend.position = "bottom")
-```
-
-\clearpage
-Figure \ref{fig:p-partial-dependence-res} shows partial dependence plots for groups of variables in the projected models for the MIRS-based regression models. Variables were assigned to different OM groups based on the molecular structures the MIRS variables can be assigned to.
-
-```{r p-partial-dependence-res, fig.align='center', fig.height=10, fig.width=8.5, out.width="80%", fig.cap="Partial dependence plots for groups of variables included in the projected MIRS-based regression model for the EAC\\textsubscript{POM} (with Bayesian regularization and not derived spectra) computed with the complete data set (\\textbf{A}) and the filtered data set (\\textbf{B}, maximal potential contribution of iron to the EAC and EDC $\\le\\SI{100}{\\micro\\mol\\per\\gram\\carbon}$). This is the model interpreted in the main text. Each panel contains the plots for one OM group (labile, lipids, aromatics, carbonyl), and each panel's subplots the respective variables indicated by their wavenumber values (for example MIR variables assigned to labile OM fractions are those at 3660 and \\SI{3670}{\\wn}). The partial dependence plots were created by predicting EAC\\textsubscript{POM} values with the projected models for the input data, where all variables except those in the respective OM groups were set to their average value. Black points represent these predictions. Grey points represent the respective measured EAC\\textsubscript{POM}. Error bars represent the 95\\%-posterior intervals for the average (predicted values) and individual observations (for the measured values), respectively."}
-### Partial dependence plots for key selected variables
-
-## unfiltered data
-
-# get the projected model
-m_proj <- cal_br_proj$d_cal_eac$cal_proj
-
-# get the variable names
-index_var <- m_proj$vind %>% sort()
-
-# get the data
-xnew <- 
-  d_cal_tot$d_cal_eac$var[, index_var] %>%
-  as.data.frame()
-xnew_aveage <- purrr::map_dbl(xnew, mean)
-
-# variabe grouping
-target_vars_eac <- 
-  list(
-    "Labile" = c(286, 287),
-    "Recalcitrant" = c(3, 71, 211, 210),
-    "Lipids" = c(211, 210),
-    "Aromatics" = c(3, 71),
-    "Carbonyl" = c(92),
-    "All" = index_var
+    refs_only_si = 
+      purrr::map_lgl(BIBTEXKEY, function(x) {
+        stringr::str_detect(si_text, x) & !stringr::str_detect(main_text, x)
+      })
   )
-
-target_vars_eac_names <- 
-  purrr::map_df(target_vars_eac, function(x) {
-    tibble::tibble(
-      old = paste0("varV", x),
-      new = as.character(cal_br_proj$d_cal_eac$cal_vs_interpretation$wavenumber[match(x, cal_br_proj$d_cal_eac$cal_vs_interpretation$vind)])
-    )
-  }) %>%
-  dplyr::filter(!duplicated(old))
-
-# get the data
-xnew_grid <- 
-  purrr::map(target_vars_eac, function(i) {
-    res <- 
-      dplyr::bind_cols(xnew[, index_var %in% i, drop = FALSE], 
-                       matrix(rep(xnew_aveage[!index_var %in% i], nrow(xnew)), byrow = TRUE, nrow = nrow(xnew), ncol = ncol(xnew) - length(i)) %>% as.data.frame()) %>%
-      dplyr::select(order(c(i, index_var[!index_var %in% i])))
-    colnames(res) <- names(index_var)
-    res
-  })
-
-# compute the joint predictions
-eac_partial_dependence_d <- 
-  purrr::map_df(seq_along(xnew_grid), function(i) {
-    x <- xnew_grid[[i]]
-    yrep <- projpred::proj_linpred(cal_br_proj$d_cal_eac$cal_proj, 
-                                   xnew = x, 
-                                   nv = cal_br_proj$d_cal_eac$cal_vs_ss) %>%
-      as.data.frame()
-    x %>%
-      dplyr::mutate(
-        yrep_mean = purrr::map_dbl(yrep, mean) %>% rp_rescale(d_cal_eac$y_scaled),
-        yrep_lwr = purrr::map_dbl(yrep, redoxpeat::get_lower_ci, prob = 0.95) %>% rp_rescale(d_cal_eac$y_scaled),
-        yrep_upr = purrr::map_dbl(yrep, redoxpeat::get_upper_ci, prob = 0.95) %>% rp_rescale(d_cal_eac$y_scaled),
-        y_mean = purrr::map_dbl(reg_base_eac_summary, mean),
-        y_lwr = purrr::map_dbl(reg_base_eac_summary, redoxpeat::get_lower_ci, prob = 0.95),
-        y_upr = purrr::map_dbl(reg_base_eac_summary, redoxpeat::get_upper_ci, prob = 0.95),
-        om_fraction = names(target_vars_eac)[[i]]
-      )
-  })
-
-# plot
-p1 <- 
-  purrr::map(seq_along(target_vars_eac)[-c(2, length(target_vars_eac))], function(i) {
-    
-    om_fraction <- names(target_vars_eac)[[i]]
-    
-    dplyr::bind_rows(
-      eac_partial_dependence_d %>%
-        dplyr::mutate(data = "Raw"),
-      eac_partial_dependence_d %>%
-        dplyr::mutate(data = "Predicted",
-                      y_mean = yrep_mean,
-                      y_lwr = yrep_lwr,
-                      y_upr = yrep_upr)
-    ) %>%
-      dplyr::filter(om_fraction == !!om_fraction) %>%
-      dplyr::select(data, y_mean, y_lwr, y_upr, paste0("varV", target_vars_eac[[i]])) %>%
-      tidyr::pivot_longer(cols = -c(data, y_mean, y_lwr, y_upr), names_to = "variable", values_to = "values") %>%
-      dplyr::mutate(variable = target_vars_eac_names$new[match(variable, target_vars_eac_names$old)]) %>%
-      ggplot(aes(x = values, y = y_mean, ymin = y_lwr, ymax = y_upr, colour = data)) + 
-      geom_errorbar(width = 0, colour = "grey") +
-      geom_point() +
-      facet_wrap(~ variable) +
-      scale_colour_manual(values = c("black", "grey")) +
-      labs(y = expression(EAC[POM]~"["*mu*mol~g[C]^{-1}*"]"),
-           x = "Predictor variable value",
-           title = names(target_vars_eac)[[i]]) +
-      theme(legend.position = "none")
-    
-  })
-
-p1 <- 
-cowplot::plot_grid(plotlist = list(p1[[1]], p1[[3]], p1[[2]], cowplot::plot_grid(NULL, p1[[4]], NULL, ncol = 3, rel_widths = c(0.25, 0.5, 0.25))), 
-                   ncol = 1) 
-
-## filtered data
-
-# get the projected model
-m_proj <- cal_br_proj_fe$d_cal_eac_fe$cal_proj
-
-# get the variable names
-index_var <- m_proj$vind %>% sort()
-
-# get the data
-xnew <- 
-  d_cal_tot_fe$d_cal_eac_fe$var[, index_var] %>%
-  as.data.frame()
-xnew_aveage <- purrr::map_dbl(xnew, mean)
-
-# variabe grouping
-target_vars_eac <- 
-  list(
-    "Labile" = c(286, 287),
-    "Recalcitrant" = c(3, 209, 211),
-    "Lipids" = c(209, 211),
-    "Aromatics" = c(3),
-    "Carbonyl" = c(92),
-    "All" = index_var
-  )
-
-target_vars_eac_names <- 
-  purrr::map_df(target_vars_eac, function(x) {
-    tibble::tibble(
-      old = paste0("varV", x),
-      new = as.character(cal_br_proj_fe$d_cal_eac_fe$cal_vs_interpretation$wavenumber[match(x, cal_br_proj_fe$d_cal_eac_fe$cal_vs_interpretation$vind)])
-    )
-  }) %>%
-  dplyr::filter(!duplicated(old))
-
-# get the data
-xnew_grid <- 
-  purrr::map(target_vars_eac, function(i) {
-    res <- 
-      dplyr::bind_cols(xnew[, index_var %in% i, drop = FALSE], 
-                       matrix(rep(xnew_aveage[!index_var %in% i], nrow(xnew)), byrow = TRUE, nrow = nrow(xnew), ncol = ncol(xnew) - length(i)) %>% as.data.frame()) %>%
-      dplyr::select(order(c(i, index_var[!index_var %in% i])))
-    colnames(res) <- names(index_var)
-    res
-  })
-
-# compute the joint predictions
-eac_partial_dependence_d <- 
-  purrr::map_df(seq_along(xnew_grid), function(i) {
-    x <- xnew_grid[[i]]
-    yrep <- projpred::proj_linpred(cal_br_proj_fe$d_cal_eac_fe$cal_proj, 
-                                   xnew = x, 
-                                   nv = cal_br_proj_fe$d_cal_eac_fe$cal_vs_ss) %>%
-      as.data.frame()
-    x %>%
-      dplyr::mutate(
-        yrep_mean = purrr::map_dbl(yrep, mean) %>% rp_rescale(d_cal_eac_fe$y_scaled),
-        yrep_lwr = purrr::map_dbl(yrep, redoxpeat::get_lower_ci, prob = 0.95) %>% rp_rescale(d_cal_eac_fe$y_scaled),
-        yrep_upr = purrr::map_dbl(yrep, redoxpeat::get_upper_ci, prob = 0.95) %>% rp_rescale(d_cal_eac_fe$y_scaled),
-        y_mean = purrr::map_dbl(reg_base_eac_summary[, d$index_eac[!is.na(d$C)]], mean),
-        y_lwr = purrr::map_dbl(reg_base_eac_summary[, d$index_eac[!is.na(d$C)]], redoxpeat::get_lower_ci, prob = 0.95),
-        y_upr = purrr::map_dbl(reg_base_eac_summary[, d$index_eac[!is.na(d$C)]], redoxpeat::get_upper_ci, prob = 0.95),
-        om_fraction = names(target_vars_eac)[[i]]
-      )
-  })
-
-# plot
-p2 <- 
-  purrr::map(seq_along(target_vars_eac)[-c(2, length(target_vars_eac))], function(i) {
-    
-    om_fraction <- names(target_vars_eac)[[i]]
-    
-    dplyr::bind_rows(
-      eac_partial_dependence_d %>%
-        dplyr::mutate(data = "Raw"),
-      eac_partial_dependence_d %>%
-        dplyr::mutate(data = "Predicted",
-                      y_mean = yrep_mean,
-                      y_lwr = yrep_lwr,
-                      y_upr = yrep_upr)
-    ) %>%
-      dplyr::filter(om_fraction == !!om_fraction) %>%
-      dplyr::select(data, y_mean, y_lwr, y_upr, paste0("varV", target_vars_eac[[i]])) %>%
-      tidyr::pivot_longer(cols = -c(data, y_mean, y_lwr, y_upr), names_to = "variable", values_to = "values") %>%
-      dplyr::mutate(variable = target_vars_eac_names$new[match(variable, target_vars_eac_names$old)]) %>%
-      ggplot(aes(x = values, y = y_mean, ymin = y_lwr, ymax = y_upr, colour = data)) + 
-      geom_errorbar(width = 0, colour = "grey") +
-      geom_point() +
-      facet_wrap(~ variable) +
-      scale_colour_manual(values = c("black", "grey")) +
-      labs(y = expression(EAC[POM]~"["*mu*mol~g[C]^{-1}*"]"),
-           x = "Predictor variable value",
-           title = names(target_vars_eac)[[i]]) +
-      theme(legend.position = "none")
-    
-  })
-
-p2 <- 
-cowplot::plot_grid(
-    plotlist = list(p2[[1]], 
-                    cowplot::plot_grid(NULL, p2[[3]], NULL, ncol = 3, rel_widths = c(0.25, 0.5, 0.25)), 
-                    p2[[2]], 
-                    cowplot::plot_grid(NULL, p2[[4]], NULL, ncol = 3, rel_widths = c(0.25, 0.5, 0.25))), 
-    ncol = 1) 
-
-cowplot::plot_grid(plotlist = list(p1, p2), ncol = 2, labels = LETTERS[1:2])
 ```
 
-\clearpage
-Figure \ref{fig:p-el-eac-edc2-res} shows plots of the EDC versus the EAC for samples from this study and different HS and DOM samples from other studies.
+\nocite{`r paste(bibkeys$BIBTEXKEY[!bibkeys$refs_only_si], collapse = ", ")`}
+\bibliography{references}
 
-```{r p-el-eac-edc2-res, fig.align='center', fig.height=4, fig.width=6, out.width="0.7\\textwidth", fig.cap="Plot of the average EAC versus the average EDC for peat POM samples of this study and DOM and HS samples from other studies. Error bars represent the respective standard errors from replicate measurements (only for this study). Samples below the diagonal line have a larger EAC than EDC."}
-p_el_eac_edc2
-```
-
-\clearpage
-Figure \ref{fig:conceptual2} is a conceptual representation of the interactions between vegetation chemistry and decomposition on peat POM electrochemical properties as mediated by its chemistry. 
-
-```{r conceptual2, fig.align='center', out.width="100%", fig.cap='Conceptual graphic showing the assumed effects of vegetation chemistry (polymeric phenol content) and decomposition pathways and intensity on peat chemistry and its EAC\\textsubscript{POM} and EDC\\textsubscript{POM}. Circles represent from left to right phenols, quinones, polysaccharides, and non-redox active OM fractions (condensed aromatics, lipids). Their area represents the absolute fraction of these moieties. Barplots represent the absolute EDC\\textsubscript{POM} and EAC\\textsubscript{POM}.'}
-knitr::include_graphics("./../figures/conceptual_vegetation_decomposition2.pdf")
-```
-
-# Supplementary References {-}
-
+\nocitesi{`r paste(bibkeys$BIBTEXKEY[bibkeys$refs_only_si], collapse = ", ")`}
+\bibliographystylesi{apacite}
+\bibliographysi{references}

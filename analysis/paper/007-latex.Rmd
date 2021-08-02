@@ -1,0 +1,30 @@
+---
+title: "Untitled"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+# fully compile literature references in main dicument
+tinytex::latexmk(file = "001-paper-main.tex", clean = FALSE)
+system("bibtex si.aux")
+tinytex::latexmk(file = "001-paper-main.tex", clean = FALSE)
+```
+
+```{r}
+# remove unnecessary parts in supplementary information
+si <- readLines("006-paper-supplementary.tex")
+
+index_keypoints <- stringr::str_detect(si, "^\\\\begin\\{keypoints\\}")
+index_absract <- stringr::str_detect(si, "^\\\\begin\\{abstract\\}")
+
+si <- si[-c(which(index_keypoints) + 0:2, which(index_absract) + 0:2)]
+
+writeLines(si, "006-paper-supplementary.tex")
+
+tinytex::latexmk(file = "006-paper-supplementary.tex", clean = FALSE)
+```
+
