@@ -1,7 +1,7 @@
 
 <!-- README.md is generated from README.Rmd. Please edit that file -->
 
-[![Last-changedate](https://img.shields.io/badge/last%20change-2021--04--17-brightgreen.svg)](todo)
+[![Last-changedate](https://img.shields.io/badge/last%20change-2021--08--05-brightgreen.svg)](todo)
 [![minimal R
 version](https://img.shields.io/badge/R%3E%3D-4.0.1-6666ff.svg)](https://cran.r-project.org/)
 [![ORCiD](https://img.shields.io/badge/ORCiD-0000--0002--3993--1182-green.svg)](http://orcid.org/0000-0002-3993-1182)
@@ -27,8 +27,8 @@ This repository contains the data and code for our paper:
 
 Our pre-print is online here:
 
-> Authors, (YYYY). *Title of paper*. Name of journal/book, Accessed 17
-> Apr 2021. Online at <https://doi.org/xxx/xxx>
+> Authors, (YYYY). *Title of paper*. Name of journal/book, Accessed 05
+> Aug 2021. Online at <https://doi.org/xxx/xxx>
 
 ### How to download or install
 
@@ -209,7 +209,7 @@ Please cite this compendium as:
 > Henning Teickner, Chuanyu Gao, Klaus-Holger Knorr, (2021). *Compendium
 > of R code and data for ‘Electrochemical Properties of Peat Particulate
 > Organic Matter on a Global Scale: Relation to Peat Chemistry and
-> Degree of Decomposition’*. Accessed 17 Apr 2021. Online at
+> Degree of Decomposition’*. Accessed 05 Aug 2021. Online at
 > <https://doi.org/xxx/xxx>
 
 ### Licenses
@@ -235,6 +235,8 @@ participating in this project you agree to abide by its terms.
 ### References/Sources
 
 The format of this research compendium is inspired by Marwick (2017).
+The Rmarkdown template for the main article is from the rticles package
+(Allaire et al. 2020).
 
 <div id="refs" class="references">
 
@@ -244,6 +246,15 @@ Aeschbacher, Michael, Cornelia Graf, René P. Schwarzenbach, and Michael
 Sander. 2012. “Antioxidant properties of humic substances.”
 *Environmental science & technology* 46 (9): 4916–25.
 <https://doi.org/10.1021/es300039h>.
+
+</div>
+
+<div id="ref-Allaire.2020">
+
+Allaire, J. J., Yihui Xie, R. Foundation, Hadley Wickham, Journal of
+Statistical Software, Ramnath Vaidyanathan, Association for Computing
+Machinery, et al. 2020. “rticles: Article Formats for R Markdown.”
+<https://github.com/rstudio/rticles>.
 
 </div>
 

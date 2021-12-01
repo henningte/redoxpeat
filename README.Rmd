@@ -29,11 +29,7 @@ Henning Teickner (henning.teickner@uni-muenster.de)
 
 This repository contains the data and code for our paper:
 
-> Henning Teickner, Chuanyu Gao, Klaus-Holger Knorr (2021). _Electrochemical Properties of Peat Particulate Organic Matter on a Global Scale: Relation to Peat Chemistry and Degree of Decomposition_. Name of journal/book <https://doi.org/xxx/xxx>
-
-Our pre-print is online here:
-
-> Authors, (YYYY). _Title of paper_. Name of journal/book, Accessed `r format(Sys.Date(), "%d %b %Y")`. Online at <https://doi.org/xxx/xxx>
+> Henning Teickner, Chuanyu Gao, Klaus-Holger Knorr (2021). _Electrochemical Properties of Peat Particulate Organic Matter on a Global Scale: Relation to Peat Chemistry and Degree of Decomposition_. Global Biochemical Cycles <https://doi.org/xxx/xxx>
 
 ### How to download or install
 
@@ -57,7 +53,7 @@ Alternatively, the [Dockerfile](Dockerfile) can be used to build a Docker image 
 
 The [Dockerfile](Dockerfile) provides instructions how to build a Docker image from the Dockerfile and how to run the image in a Docker container. It occupies disk space of ~7 Gb.
 
-When the Docker image runs in a container, go to `localhost:8787` in your Browser. You will find an RStudio interface where you can log in with username `rstudio` and password `rstudio`. Here you can find the Rmarkdown scripts (`redoxpeat/analysis/paper/001-paper-main.rmd` and `analysis/paper/007-latex.Rmd`) as described above.  
+When the Docker image runs in a container, go to `localhost:8787` in your Browser. You will find an RStudio interface where you can log in with username `rstudio` and password `redoxpeat`. Here you can find the Rmarkdown scripts (`redoxpeat/analysis/paper/001-paper-main.rmd` and `analysis/paper/007-latex.Rmd`) as described above.  
 
 #### Access to the R scripts
 
@@ -138,11 +134,11 @@ Please cite this compendium as:
 
 ### Licenses
 
-**Text and figures :**  [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/)
+**Text and figures:**  [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/)
 
-**Code :** See the [DESCRIPTION](DESCRIPTION) file
+**Code:** See the [DESCRIPTION](DESCRIPTION) file
 
-**Data :** [CC-0](http://creativecommons.org/publicdomain/zero/1.0/) attribution requested in reuse
+**Data:** [CC-0](http://creativecommons.org/publicdomain/zero/1.0/) attribution requested in reuse
 
 **LaTeX templates:** The LaTeX templates are derived from the rticles R package.
 
@@ -152,4 +148,4 @@ We welcome contributions from everyone. Before you get started, please see our [
 
 ### References/Sources
 
-The format of this research compendium is inspired by @Marwick.2017.  
+The format of this research compendium is inspired by @Marwick.2017. The Rmarkdown template for the main article is from the rticles package [@Allaire.2020].   

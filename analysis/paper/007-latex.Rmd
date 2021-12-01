@@ -8,7 +8,48 @@ knitr::opts_chunk$set(echo = TRUE)
 ```
 
 ```{r}
-# fully compile literature references in main dicument
+# packages
+library(magrittr)
+library(dplyr)
+library(bib2df)
+library(tinytex)
+```
+
+
+```{r}
+# clean the bib file
+# get bibkeys
+bibkeys <- bib2df::bib2df("references.bib")
+
+# get texts to search for bibkey
+si_text <- 
+  readLines("006-paper-supplementary.Rmd") %>%
+  paste(collapse = " ")
+  
+main_text <- 
+  readLines("001-paper-main.Rmd") %>%
+  paste(collapse = " ")
+
+# filter
+bibkeys <-
+  bibkeys %>%
+  dplyr::mutate(
+    refs_target = 
+      purrr::map_lgl(BIBTEXKEY, function(x) {
+          (stringr::str_detect(si_text, x) | stringr::str_detect(main_text, x)) 
+      }),
+  )
+
+bibkeys %>%
+  dplyr::filter(refs_target) %>%
+  dplyr::select(-refs_target, -FILE.1, -FILE.2, -FILE.3) %>%
+  dplyr::mutate(KEYWORDS = NA, FILE = NA) %>%
+  bib2df::df2bib("references.bib")
+```
+
+
+```{r}
+# fully compile literature references in main document
 tinytex::latexmk(file = "001-paper-main.tex", clean = FALSE)
 system("bibtex si.aux")
 tinytex::latexmk(file = "001-paper-main.tex", clean = FALSE)

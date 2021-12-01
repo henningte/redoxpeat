@@ -1,7 +1,10 @@
 .Rhistory
+.Rprofile
 .RData
 .Rproj.user
 analysis/paper/001-paper-main_cache
+analysis/submission
+analysis/submission-2
 *.pdf
 *.bbl
 *.bcf
@@ -13,4 +16,7 @@ analysis/paper/001-paper-main_cache
 *.synctex.gz
 *.tex.bak
 *.cls.bak
+*.knit.md
+*.utf8.md
 renv
+analysis/paper/001-paper-main-or.Rmd

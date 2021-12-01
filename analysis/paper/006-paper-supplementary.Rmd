@@ -121,7 +121,7 @@ All computations were preformed in R (4.0.1) [@RCoreTeam.2020]. Graphics were cr
 
 ## Correlation of the EAC\textsubscript{POM}, EDC\textsubscript{POM}, and EDC\textsubscript{POM}:EAC\textsubscript{POM} Ratio with XRF Data
 
-We measured element contents with wavelength dispersive X-ray fluorescence spectroscopy (WD-XRF; ZSX Primus II, Rigaku, Tokyo, Japan), but did not include the measurements into our analyses since such analyses are entirely explorative and not corrobated by similar analyses for DOM and HS. Here, we present Pearson correlation coefficients for the measured element contents with the EAC\textsubscript{POM}, EDC\textsubscript{POM}, and EDC\textsubscript{POM}:EAC\textsubscript{POM} ratio (table \ref{tab:t-cor-el-xrf}).
+We measured element contents with wavelength dispersive X-ray fluorescence spectroscopy (WD-XRF; ZSX Primus II, Rigaku, Tokyo, Japan), but did not include the measurements into our analyses since such analyses are entirely explorative and not corrobated by similar analyses for DOM and humic and fulvic acids. Here, we present Pearson correlation coefficients for the measured element contents with the EAC\textsubscript{POM}, EDC\textsubscript{POM}, and EDC\textsubscript{POM}:EAC\textsubscript{POM} ratio (table \ref{tab:t-cor-el-xrf}).
 
 ```{r t-cor-el-xrf}
 # compute correlation values
@@ -201,7 +201,7 @@ Bias from not considered contributions of iron to the EAC\textsubscript{POM} and
 
 Figure \ref{fig:el-preprocessing-p1-res} shows boxplots of the peat EAC$_\text{POM}$ and EDC$_\text{POM}$ replicate measurements for each sample.
 
-```{r el-preprocessing-p1-res, fig.align='center', fig.width=4, fig.height=7, out.width="50%", fig.cap='Boxplots of the EAC$_\\text{POM}$ and EDC$_\\text{POM}$ replicate measurements for the samples from this study. For sample 2, the EAC measurement with more than $\\SI{1500}{\\micro\\mol\\per\\gram\\carbon}$ was assumed to represent a measurement error and therefore discarded prior the statistical analysis.'}
+```{r el-preprocessing-p1-res, fig.align='center', fig.width=4, fig.height=7, out.width="50%", fig.cap='Boxplots of the EAC$_\\text{POM}$ and EDC$_\\text{POM}$ replicate measurements for the samples from this study. Sample labels are a combination of the site label and the depth of the upper boundary of the sampled peat layer. For sample BB-48, the EAC measurement with more than $\\SI{1500}{\\micro\\mol\\per\\gram\\carbon}$ was assumed to represent a measurement error and therefore discarded prior the statistical analysis.'}
 el_preprocessing_p1
 ```
 
@@ -1461,9 +1461,9 @@ cowplot::plot_grid(plotlist = list(p1, p2), ncol = 2, labels = LETTERS[1:2])
 ```
 
 \clearpage
-Figure \ref{fig:p-el-eac-edc2-res} shows plots of the EDC versus the EAC for samples from this study and different HS and DOM samples from other studies.
+Figure \ref{fig:p-el-eac-edc2-res} shows plots of the EDC versus the EAC for samples from this study and different humic and fulvic acids and DOM samples from other studies.
 
-```{r p-el-eac-edc2-res, fig.align='center', fig.height=4, fig.width=6, out.width="0.7\\textwidth", fig.cap="Plot of the average EAC versus the average EDC for peat POM samples of this study and DOM and HS samples from other studies. Error bars represent the respective standard errors from replicate measurements (only for this study). Samples below the diagonal line have a larger EAC than EDC."}
+```{r p-el-eac-edc2-res, fig.align='center', fig.height=4, fig.width=6, out.width="0.7\\textwidth", fig.cap="Plot of the average EAC versus the average EDC for peat POM samples of this study and DOM and humic and fulvic acids samples from other studies. Error bars represent the respective standard errors from replicate measurements (only for this study). Samples below the diagonal line have a larger EAC than EDC."}
 p_el_eac_edc2
 ```
 
