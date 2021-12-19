@@ -3,7 +3,9 @@
 .RData
 .Rproj.user
 analysis/paper/001-paper-main_cache
-analysis/submission
+analysis/paper/001-paper-main.tex
+analysis/paper/006-paper-supplementary.tex
+analysis/submission-1
 analysis/submission-2
 *.pdf
 *.bbl
@@ -20,3 +22,5 @@ analysis/submission-2
 *.utf8.md
 renv
 analysis/paper/001-paper-main-or.Rmd
+*005-incubation_electrochemical_data.csv
+*tmp-pdfcrop*

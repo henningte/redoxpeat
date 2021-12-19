@@ -86,7 +86,7 @@ header-includes:
 
 # Graphical Abstract
 
-```{r graphical-abstract, fig.align="center", out.width="0.6\\textwidth", fig.cap='Graphical abstract: Description: This study addresses the relation between peat chemical properties (element contents, mid infrared spectra) and electrochemical properties and the role of decomposition for both based on a global data set. Peat electrochemical properties (electron accepting capacity - EAC, electron donating capacity - EDC) control peatland methane formation. Phenols are main contributors to the EDC and quinones to the EAC. Vegetation chemistry and intensity of decomposition are major controls of peat EAC and EDC. Peat with initial large amount of phenols initially have a large EDC and upon decomposition a larger EAC since phenols are transformed to quinones. Samples with initially smaller amount of phenols cannot attain the same EAC/EDC levels, even though decomposition leads to similar changes. This conceptual model can explain the large within and between-site variability of the EAC and EDC we observed, as well as the complex relations to indicators of peat chemistry and decomposition indicators.'}
+```{r graphical-abstract, fig.align="center", out.width="0.6\\textwidth", fig.cap='Graphical abstract: Description: This study addresses the relation between peat chemical properties (element contents, mid infrared spectra) and electrochemical properties and the role of decomposition for both based on a global data set. Peat electrochemical properties (electron accepting capacity - EAC, electron donating capacity - EDC) control peatland methane formation. Phenols are main contributors to the EDC and quinones to the EAC. Vegetation chemistry and intensity of decomposition are major controls of peat EAC and EDC. Peat with initial large amount of phenols initially has a large EDC and upon decomposition a larger EAC since phenols are transformed to quinones. Peat with initially smaller amount of phenols cannot attain the same EAC/EDC levels, even though decomposition leads to similar changes. This conceptual model can explain the large within and between-site variability of the EAC and EDC we observed, as well as the complex relations to indicators of peat chemistry and decomposition indicators.'}
 knitr::include_graphics("./../figures/graphical_abstract.pdf")
 ```
 
@@ -98,7 +98,7 @@ All spectra were linearly interpolated to a resolution of 1 cm$^{-1}$. To remove
 
 ## Element Ratio-Based Regression Models
 
-In addition to the models described in the main text, we evaluated if using robust regression (coefficients are assumed to follow a Student-t distribution instead of a Gaussian distribution) has an effect on the model fit since several samples did not fit in the overall pattern.  
+In addition to the models described in the main text, we evaluated if using robust regression (coefficients are assumed to follow a Student-t distribution instead of a Gaussian distribution) has an effect on the model fit, since several samples did not fit in the overall pattern.  
 We applied several transformations to facilitate model fitting and defining prior distributions: The EAC\textsubscript{POM} and EDC\textsubscript{POM} values were divided by their maximal values (i.e. after transformation all values were $\le1$) and a small constant of 0.05 was added to the scaled EDC\textsubscript{POM} values to facilitate convergence. All predictor variables were centered (such that their mean value is 0 and the model's intercept represents average samples) and scaled (such that their standard deviation is 1).  
 We used a Normal prior distribution with a mean of log(0.5) and a standard deviation of 0.1 amounting to a 95%-confidence interval of the prior intercept on the link function scale of approximately `r round(redoxpeat::get_lower_ci(exp(ppc1_pars$y_pop), prob = 0.95), 2)` to `r round(redoxpeat::get_upper_ci(exp(ppc1_pars$y_pop), prob = 0.95), 2)` which loosely matched our expectations of the position of the samples' mean following our normalization procedure. We also assumed the slopes of the top regression model to be normally distributed with a mean of 0 and a standard deviation of `r reg_base_eac_data$sigma_beta_0[[1]]`. This expresses a vague prior knowledge, allowing both negative and positive slopes of different strength with equal probability, matching the scarce knowledge basis for the relation of the different bulk peat chemistry descriptors with the EAC (supporting figure \ref{fig:p-ppc-res}).  
 For the variance of the individual measurements an exponential distribution was assumed. For each sample, we estimated a separate variance. We set the scale parameter for the prior of each measurement such that an average measurement had an average prior standard deviation of around $\SI{`r round(mean(ppc1_pars$sigma_j.1) * max(as.numeric(el_t0$eac_c[index_eac]), na.rm = TRUE), 0)`}{\micro\mol\per\g\carbon}$ which corresponds approximately to the maximum standard error reported by @Aeschbacher.2012 for EAC measurements for various humic and fulvic acids using the same measurement procedure. Similarly, for the residual variance of the regression model an equivalent exponential distribution was assumed.  
@@ -169,7 +169,7 @@ d_cor_xrf <-
 # make a pretty table
 d_cor_xrf %>%
 kableExtra::kable(format = "latex", booktabs = TRUE, 
-                    caption = 'Pearson correlation between the EAC\\textsubscript{POM}, EDC\\textsubscript{POM}, and EDC\\textsubscript{POM}:EAC\\textsubscript{POM} ratio on the one side and element contents as determined by wavelength dispersive X-ray fluorescence spectroscopy.',
+                    caption = 'Pearson correlation between the EAC\\textsubscript{POM}, EDC\\textsubscript{POM}, and EDC\\textsubscript{POM}:EAC\\textsubscript{POM} ratio on the one hand and element contents as determined by wavelength dispersive X-ray fluorescence spectroscopy on the other hand.',
                     align = "cccc",
                   col.names = c("Element", "EAC\\textsubscript{POM}", "EDC\\textsubscript{POM}", "EAC\\textsubscript{POM}:EDC\\textsubscript{POM}"),
                   escape = FALSE)
@@ -190,7 +190,7 @@ Based on our results, it remains currently unclear if and to which extent these 
 
 Several factors may cause the large variability in the predictions of both models for the EAC\textsubscript{POM} and the bias of the element ratio-based model.
 We attribute the latter to the complex interactions between vegetation chemistry and decomposition, as described above, that results in non-trivial gradients across the H:C-O:C gradient. The MIRS-based model probably performs better because it can separate OM fractions representative for changes in the EAC\textsubscript{POM}. In addition, element ratios probably cannot fully resolve quinone structural changes that control peat EAC\textsubscript{POM}, whereas MIRS-based models can because MIRS allow to better separate variations in carbonyl groups and different OM fractions [@Stuart.2005]. 
-The large residual uncertainties of both models may be due to the relatively small sample size in contrast to the broad gradient in peat chemical properties covered. On the one side, this results in large differences in peat chemistry the model has to describe, which lowers its predictive performance in comparison to more targeted models, and one the other side, the small sample size results in a relative large CV error. Finally, the electrochemical measurements itself have a relative large variability which we fully considered during CV. We therefore suggest that MIRS-based regression models may be at least suitable as screening tools. Furthermore, we suggest that additional data, different preprocessing methods, or modeling approaches (e.g. local models depending on peat characteristics) may improve the predictive performance of a predictive model.  
+The large residual uncertainties of both models may be due to the relatively small sample size in contrast to the broad gradient in peat chemical properties covered. On the one hand, this results in large differences in peat chemistry the model has to describe, which lowers its predictive performance in comparison to more targeted models, and on the other hand, the small sample size results in a relative large CV error. Finally, the electrochemical measurements itself have a relative large variability which we fully considered during CV. We therefore suggest that MIRS-based regression models may be at least suitable as screening tools. Furthermore, we suggest that additional data, different preprocessing methods, or modeling approaches (e.g. local models depending on peat characteristics) may improve the predictive performance of a predictive model.  
 We believe that the reason for the low performance of the models for the EDC\textsubscript{POM} is the stronger dependence of phenols on decomposition, in addition to the general issues mentioned for models for the EAC\textsubscript{POM}. MIR variables indicative for phenols [@Stuart.2005] typically are overlapped by other bands in peat MIRS. The stronger dependence on decomposition indicators (e.g. the N:C ratio) probably makes the amount of carbonyl groups or aromatic backbone structures less suitable as predictors for the EDC\textsubscript{POM}, even though the correlation spectra indicated some relation (figure \ref{fig:p-mir-cor-res}). Similarly, indicators for fresh peat do not account for the fact that peat with large amounts of polysaccharides typically contain less polymeric phenols and therefore also may have a small EDC\textsubscript{POM}. Overall this likely makes predictions using linear methods or a global model difficult.  
 Bias from not considered contributions of iron to the EAC\textsubscript{POM} and EDC\textsubscript{POM} may also play a role, even though residual plots versus total iron content did not indicate patterns for the filtered data (supporting figures \ref{fig:reg-fe-res} and \ref{fig:cal-fe-res}).
 
@@ -222,7 +222,7 @@ p_fe_contribution_abs
 \clearpage
 Figure \ref{fig:p-fe-corrected-uncorrected-res} shows plots of EAC and EDC values with potential contribution from total acid extracted iron subtracted in dependency of either the measured EAC or EDC or the EAC\textsubscript{POM} and EDC\textsubscript{POM} (EAC or EDC with contributions from Fe$^{3+}$ and Fe$^{2+}$, respectively, subtracted) for both the complete and filtered (potential contribution of iron to the EAC and EDC $\le \SI{100}{\micro\mol\of\gram\carbon}$).
 
-```{r p-fe-corrected-uncorrected-res, fig.align='center', out.width="100%", fig.width=13, fig.height=8, fig.cap='Plot of EAC or EDC values, where the potential contribution from iron had been subtracted ($\\text{EAC} - \\text{Fe}_\\text{tot}$ or $\\text{EDC} - \\text{Fe}_\\text{tot}$) versus $\\text{EAC}_\\text{POM}$ or $\\text{EDC}_\\text{POM}$ values (\\textbf{A, B}; $\\text{EAC}_\\text{POM} = \\text{EAC} - \\text{Fe}^{3+}$ and $\\text{EDC}_\\text{POM} = \\text{EDC} - \\text{Fe}^{2+}$) or measured EAC or EDC values (\\textbf{C, D}) for the complete data set (\\textbf{A, C}) or the data set with only samples that have a maximum potential contribution of iron to the EAC or EDC $\\le \\SI{100}{\\micro\\mol\\of\\gram\\carbon}$ (\\textbf{B, D}). Different colours represent samples from different sites and error bars represent standard deviations computed from replicate measurements of the EAC and EDC, respectively. The grey diagonal line with intercept in $(0,0)$ represents identical values along both axes. The other grey line is a linear regression line fitted to the data points.'}
+```{r p-fe-corrected-uncorrected-res, fig.align='center', out.width="100%", fig.width=13, fig.height=8, fig.cap='Plot of EAC or EDC values, where the potential contribution from iron had been subtracted ($\\text{EAC} - \\text{Fe}_\\text{tot}$ or $\\text{EDC} - \\text{Fe}_\\text{tot}$) versus $\\text{EAC}_\\text{POM}$ or $\\text{EDC}_\\text{POM}$ values (a, b; $\\text{EAC}_\\text{POM} = \\text{EAC} - \\text{Fe}^{3+}$ and $\\text{EDC}_\\text{POM} = \\text{EDC} - \\text{Fe}^{2+}$) or measured EAC or EDC values (c, d) for the complete data set (a, c) or the data set with only samples that have a maximum potential contribution of iron to the EAC or EDC $\\le \\SI{100}{\\micro\\mol\\of\\gram\\carbon}$ (b, d). Different colours represent samples from different sites and error bars represent standard deviations computed from replicate measurements of the EAC and EDC, respectively. The grey diagonal line with intercept in $(0,0)$ represents identical values along both axes. The other grey line is a linear regression line fitted to the data points.'}
 cowplot::plot_grid(
   plotlist = list(
     cowplot::plot_grid(
@@ -230,7 +230,7 @@ cowplot::plot_grid(
       p_fe_corrected_uncorrected2,
       p_fe_corrected_uncorrected3,
       p_fe_corrected_uncorrected4,
-      ncol = 2, labels = LETTERS[1:4]
+      ncol = 2, labels = letters[1:4]
     ),
     cowplot::plot_grid(
       NULL,
@@ -248,7 +248,7 @@ cowplot::plot_grid(
 ```
 
 \clearpage
-Figure \ref{fig:p-fe-raw-iron} shows the relation between measured EAC and EDC values on the one side and iron content values from wavelength dispersive X-ray fluorescence spectroscopy measurements and acid extraction. No systematic relation between the EAC values and iron contents are visible. For the EDC, samples with higher iron content tend to have smaller measured EDC values.
+Figure \ref{fig:p-fe-raw-iron} shows the relation between measured EAC and EDC values on the one hand and iron content values from wavelength dispersive X-ray fluorescence spectroscopy measurements and acid extraction on the other hand. No systematic relation between the EAC values and iron contents are visible. For the EDC, samples with higher iron content tend to have smaller measured EDC values.
 
 ```{r p-fe-raw-iron, fig.align='center', out.width="100%", fig.width=8, fig.height=3, fig.cap='Scatterplots of the measured EAC and EDC versus iron contents measured with wavelength dispersive X-ray fluorescence spectroscopy (Fe\\textsubscript{tot, XRF} in mass-\\%) or from acid extraction (Fe$^{2+}$, Fe$^{3+}$, and Fe\\textsubscript{tot} in \\si{\\micro\\mol\\per\\gram\\of\\sample}). Error bars represent the standard deviation from replicate measurements for the EAC and EDC, respectively.'}
 p_fe_corrected_uncorrected_df %>%
@@ -293,7 +293,7 @@ d %>% dplyr::select(id_90, site_label, Fe, `N:C`, hi3) %>%
 \clearpage
 Figure \ref{fig:p-reg-distogram-res} shows the structure of the Bayesian hierarchical regression models used to predict the peat EAC\textsubscript{POM} and EDC\textsubscript{POM} from element ratios, including the respective distributions [@Kruschke.2015; @Baath.2018], using either Gaussian slopes or Student-t slopes.
 
-```{r p-reg-distogram-res, fig.align='center', out.width='\\textwidth', fig.cap=paste0('Conceptual representation of the structure of the regression models \\citep{Kruschke.2015, Baath.2018} using element ratios as predictor variables. A: Model structure for the models with normal distributed slopes. B: Model structure for the models with Student-t distributed slopes ($\\nu = ', reg_base_eac_data$nu_betas,'$). $y_i$ is the ith replicate EAC\\textsubscript{POM} or EDC\\textsubscript{POM} measurement. Replicate measurements for the same sample are assumed to follow a Gamma distribution with mean $\\mu_j$ for the jth sample, and a sample-specific standard deviation $\\sigma_j$. The $\\mu_j$ are modeled by a regression equation $\\exp\\left(\\beta_0 + \\beta_1 x_1\\right)$ and are also assumed to follow a Gamma distribution with mean $\\mu$ and standard deviation $\\sigma_2$. $\\beta_0$ is the global intercept of the regression equation and is assumed to follow a normal distribution with mean $\\mu_{\\beta_0}$ and standard deviation $\\sigma_{\\beta_0}$. $\\beta_1$ represents a regression slope for a variable $x_1$ (e.g. the H:C ratio). For each of the $k$ predictor variables ($k=2$ for the models with the H:C and O:C ratio as predictor variables, and $k=4$ for the models including in addition the N:C and S:C ratio), there is a seprate $\\beta_k$ (not shown in the figure). The $\\beta_k$ (e.g. $\\beta_1$) are either assumed to follow a normal distribution (A), or a Student-t distribution (B) with mean $\\mu_{\\beta_1}$, standard deviation $\\sigma_{\\beta_1}$, and $\\nu_{\\beta_1}$ degrees of freedom.')}
+```{r p-reg-distogram-res, fig.align='center', out.width='\\textwidth', fig.cap=paste0('Conceptual representation of the structure of the regression models \\citep{Kruschke.2015, Baath.2018} using element ratios as predictor variables. a: Model structure for the models with normal distributed slopes. b: Model structure for the models with Student-t distributed slopes ($\\nu = ', reg_base_eac_data$nu_betas,'$). $y_i$ is the ith replicate EAC\\textsubscript{POM} or EDC\\textsubscript{POM} measurement. Replicate measurements for the same sample are assumed to follow a Gamma distribution with mean $\\mu_j$ for the jth sample, and a sample-specific standard deviation $\\sigma_j$. The $\\mu_j$ are modeled by a regression equation $\\exp\\left(\\beta_0 + \\beta_1 x_1\\right)$ and are also assumed to follow a Gamma distribution with mean $\\mu$ and standard deviation $\\sigma_2$. $\\beta_0$ is the global intercept of the regression equation and is assumed to follow a normal distribution with mean $\\mu_{\\beta_0}$ and standard deviation $\\sigma_{\\beta_0}$. $\\beta_1$ represents a regression slope for a variable $x_1$ (e.g. the H:C ratio). For each of the $k$ predictor variables ($k=2$ for the models with the H:C and O:C ratio as predictor variables, and $k=4$ for the models including in addition the N:C and S:C ratio), there is a seprate $\\beta_k$ (not shown in the figure). The $\\beta_k$ (e.g. $\\beta_1$) are either assumed to follow a normal distribution (a), or a Student-t distribution (b) with mean $\\mu_{\\beta_1}$, standard deviation $\\sigma_{\\beta_1}$, and $\\nu_{\\beta_1}$ degrees of freedom.')}
 knitr::include_graphics("./../figures/rp_regression_distogram_tot.pdf")
 ```
 
@@ -348,7 +348,7 @@ d %>%
 \clearpage
 Figure \ref{fig:reg-fe-res} shows scatterplots of the EAC\textsubscript{POM}, EDC\textsubscript{POM}, and EAC\textsubscript{POM}:EDC\textsubscript{POM} ratio versus several peat chemistry indicators.
 
-```{r p-el-variables1-res, fig.align='center', fig.height=4.2, fig.width=8, out.width="\\textwidth", fig.cap='\\textbf{a:} Scatterplots of the EAC\\textsubscript{POM}, EDC\\textsubscript{POM}, and EDC\\textsubscript{POM}:EAC\\textsubscript{POM} ratio versus various peat properties. Element ratios are molar ratios. "HI" is the ratio of the intensities at 1630 and \\SI{1090}{\\wn} from mid infrared spectra (larger values indicate more decomposed peat). C$_\\text{OX}$ is the nominal oxidation state of carbon \\citep{Masiello.2008}. Only samples with a potential contribution of iron to the EAC and EDC $\\le\\SI{100}{\\micro\\mol\\per\\gram\\carbon}$ are shown in all plots.'}
+```{r p-el-variables1-res, fig.align='center', fig.height=4.2, fig.width=8, out.width="\\textwidth", fig.cap='Scatterplots of the EAC\\textsubscript{POM}, EDC\\textsubscript{POM}, and EDC\\textsubscript{POM}:EAC\\textsubscript{POM} ratio versus various peat properties. Element ratios are molar ratios. "HI" is the ratio of the intensities at 1630 and \\SI{1090}{\\wn} from mid infrared spectra (larger values indicate more decomposed peat). C$_\\text{OX}$ is the nominal oxidation state of carbon \\citep{Masiello.2008}. Only samples with a potential contribution of iron to the EAC and EDC $\\le\\SI{100}{\\micro\\mol\\per\\gram\\carbon}$ are shown in all plots.'}
 p_el_variables1_fe
 ```
 
@@ -363,7 +363,7 @@ p_mir_cor
 \clearpage
 Figure \ref{fig:reg-fe-res} shows scatterplots of the residuals of the element ratio-based regression models in dependency of the total iron content of the samples.
 
-```{r reg-fe-res, fig.align='center', out.width="100%", fig.width=8, fig.height=7.5, fig.cap='Plot of residuals versus total iron contents for the element ratio-based regression models with the complete data set (\\textbf{A}) and the filtered data set (\\textbf{B}, maximal potential contribution of iron to the EAC and EDC $\\le\\SI{100}{\\micro\\mol\\per\\gram\\carbon}$). Columns contain plots for different modeling approaches and dependent variables (Gaussian or Student-t prior for slopes, EAC\\textsubscript{POM} or EDC\\textsubscript{POM} as dependent variable), and rows represent different predictor variable combinations (only H:C and O:C ratio or all element ratios). The red curves are LOESS smoothers fit to the samples.'}
+```{r reg-fe-res, fig.align='center', out.width="100%", fig.width=8, fig.height=7.5, fig.cap='Plot of residuals versus total iron contents for the element ratio-based regression models with the complete data set (a) and the filtered data set (b, maximal potential contribution of iron to the EAC and EDC $\\le\\SI{100}{\\micro\\mol\\per\\gram\\carbon}$). Columns contain plots for different modeling approaches and dependent variables (Gaussian or Student-t prior for slopes, EAC\\textsubscript{POM} or EDC\\textsubscript{POM} as dependent variable), and rows represent different predictor variable combinations (only H:C and O:C ratio or all element ratios). The red curves are LOESS smoothers fit to the samples.'}
 # unfiltered data
 p1 <- 
   dplyr::bind_rows(
@@ -502,13 +502,13 @@ p2 <-
 
 cowplot::plot_grid(plotlist = list(p1, p2), 
                    ncol = 1, 
-                   labels = LETTERS[1:2])
+                   labels = letters[1:2])
 ```
 
 \clearpage
 Figure \ref{fig:cal-fe-res} shows scatterplots of the residuals of the MIRS-based regression models in dependency of the total iron content of the samples.
 
-```{r cal-fe-res, fig.align='center', out.width="80%", fig.width=9, fig.height=10, fig.cap='Plot of residuals versus total iron contents for the MIRS-based regression models with the complete data set (\\textbf{A}) and the filtered data set (\\textbf{B}, maximal potential contribution of iron to the EAC and EDC $\\le\\SI{100}{\\micro\\mol\\per\\gram\\carbon}$). Columns contain plots for different dependent variables (EAC\\textsubscript{POM} or EDC\\textsubscript{POM}), and rows represent different modeling approaches (Bayesian regularization or PLSR as methods to compute regression models, using the non derived or first derivative of the mid infrared spectra as predictor variables, transforming the dependent variable (EDC\\textsubscript{POM} only) by dividing it by HI$_\\text{1630/1090}$). The red lines are LOESS smoothers fit to the samples.'}
+```{r cal-fe-res, fig.align='center', out.width="80%", fig.width=9, fig.height=10, fig.cap='Plot of residuals versus total iron contents for the MIRS-based regression models with the complete data set (a) and the filtered data set (b, maximal potential contribution of iron to the EAC and EDC $\\le\\SI{100}{\\micro\\mol\\per\\gram\\carbon}$). Columns contain plots for different dependent variables (EAC\\textsubscript{POM} or EDC\\textsubscript{POM}), and rows represent different modeling approaches (Bayesian regularization or PLSR as methods to compute regression models, using the non derived or first derivative of the mid infrared spectra as predictor variables, transforming the dependent variable (EDC\\textsubscript{POM} only) by dividing it by HI$_\\text{1630/1090}$). The red lines are LOESS smoothers fit to the samples.'}
 
 # unfiltered data
 p1 <- 
@@ -741,7 +741,7 @@ p2 <-
 
 cowplot::plot_grid(plotlist = list(p1, p2), 
                    ncol = 2, 
-                   labels = LETTERS[1:2])
+                   labels = letters[1:2])
 ```
 
 
@@ -755,7 +755,7 @@ p_y_yhat
 \clearpage
 Figure \ref{fig:p-y-yhat-reg-res} shows plots of measured versus fitted values for all computed element ratio-based regression models.
 
-```{r p-y-yhat-reg-res, fig.align='center', out.width="100%", fig.width=8, fig.height=8, fig.cap='Plot of measured versus fitted values (both in \\si{\\micro\\mol\\per\\gram\\carbon}) for the element ratio-based regression models with the complete data set (\\textbf{A}) and the filtered data set (\\textbf{B}, maximal potential contribution of iron to the EAC and EDC $\\le\\SI{100}{\\micro\\mol\\per\\gram\\carbon}$). Columns contain plots for different modeling approaches and dependent variables (Gaussian or Student-t prior for slopes, EAC\\textsubscript{POM} or EDC\\textsubscript{POM} as dependent variable), and rows represent different predictor variable combinations (only H:C and O:C ratio or all element ratios). Error bars represent 95\\% predictive intervals for the measured and predicted values. Points on the diagonal lines represents identical measured and fitted values.'}
+```{r p-y-yhat-reg-res, fig.align='center', out.width="100%", fig.width=8, fig.height=8, fig.cap='Plot of measured versus fitted values (both in \\si{\\micro\\mol\\per\\gram\\carbon}) for the element ratio-based regression models with the complete data set (a) and the filtered data set (b, maximal potential contribution of iron to the EAC and EDC $\\le\\SI{100}{\\micro\\mol\\per\\gram\\carbon}$). Columns contain plots for different modeling approaches and dependent variables (Gaussian or Student-t prior for slopes, EAC\\textsubscript{POM} or EDC\\textsubscript{POM} as dependent variable), and rows represent different predictor variable combinations (only H:C and O:C ratio or all element ratios). Error bars represent 95\\% predictive intervals for the measured and predicted values. Points on the diagonal lines represents identical measured and fitted values.'}
 
 # unfiltered data
 p1 <- 
@@ -899,13 +899,13 @@ dplyr::bind_rows(
 
 cowplot::plot_grid(plotlist = list(p1, p2), 
                    ncol = 1, 
-                   labels = LETTERS[1:2])
+                   labels = letters[1:2])
 ```
 
 \clearpage
 Figure \ref{fig:p-y-yhat-cal-res} shows plots of measured versus fitted values for all computed MIRS-based regression models.
 
-```{r p-y-yhat-cal-res, fig.align='center', out.width="80%", fig.width=9, fig.height=13, fig.cap='Plot of measured versus fitted values (both in \\si{\\micro\\mol\\per\\gram\\carbon}) for the MIRS-based regression models with the complete data set (\\textbf{A}) and the filtered data set (\\textbf{B}, maximal potential contribution of iron to the EAC and EDC $\\le\\SI{100}{\\micro\\mol\\per\\gram\\carbon}$). Columns contain plots for different dependent variables (EAC\\textsubscript{POM} or EDC\\textsubscript{POM}), and rows represent different modeling approaches (Bayesian regularization or PLSR as methods to compute regression models, using the non derived or first derivative of the mid infrared spectra as predictor variables, transforming the dependent variable (EDC only) by dividing it by HI$_\\text{1630/1090}$). Error bars represent 95\\% predictive intervals for the measured and predicted values. Points on the diagonal lines represents identical measured and fitted values.'}
+```{r p-y-yhat-cal-res, fig.align='center', out.width="80%", fig.width=9, fig.height=13, fig.cap='Plot of measured versus fitted values (both in \\si{\\micro\\mol\\per\\gram\\carbon}) for the MIRS-based regression models with the complete data set (a) and the filtered data set (b, maximal potential contribution of iron to the EAC and EDC $\\le\\SI{100}{\\micro\\mol\\per\\gram\\carbon}$). Columns contain plots for different dependent variables (EAC\\textsubscript{POM} or EDC\\textsubscript{POM}), and rows represent different modeling approaches (Bayesian regularization or PLSR as methods to compute regression models, using the non derived or first derivative of the mid infrared spectra as predictor variables, transforming the dependent variable (EDC only) by dividing it by HI$_\\text{1630/1090}$). Error bars represent 95\\% predictive intervals for the measured and predicted values. Points on the diagonal lines represents identical measured and fitted values.'}
 
 # unfiltered data
 p1 <- 
@@ -1119,7 +1119,7 @@ dplyr::bind_rows(
 
 cowplot::plot_grid(plotlist = list(p1, p2), 
                    ncol = 2, 
-                   labels = LETTERS[1:2])
+                   labels = letters[1:2])
 ```
 
 \clearpage
@@ -1250,7 +1250,7 @@ dplyr::bind_rows(cal_elpd_ref,
 \clearpage
 Figure \ref{fig:p-partial-dependence-res} shows partial dependence plots for groups of variables in the projected models for the MIRS-based regression models. Variables were assigned to different OM groups based on the molecular structures the MIRS variables can be assigned to.
 
-```{r p-partial-dependence-res, fig.align='center', fig.height=10, fig.width=8.5, out.width="80%", fig.cap="Partial dependence plots for groups of variables included in the projected MIRS-based regression model for the EAC\\textsubscript{POM} (with Bayesian regularization and not derived spectra) computed with the complete data set (\\textbf{A}) and the filtered data set (\\textbf{B}, maximal potential contribution of iron to the EAC and EDC $\\le\\SI{100}{\\micro\\mol\\per\\gram\\carbon}$). This is the model interpreted in the main text. Each panel contains the plots for one OM group (labile, lipids, aromatics, carbonyl), and each panel's subplots the respective variables indicated by their wavenumber values (for example MIR variables assigned to labile OM fractions are those at 3660 and \\SI{3670}{\\wn}). The partial dependence plots were created by predicting EAC\\textsubscript{POM} values with the projected models for the input data, where all variables except those in the respective OM groups were set to their average value. Black points represent these predictions. Grey points represent the respective measured EAC\\textsubscript{POM}. Error bars represent the 95\\%-posterior intervals for the average (predicted values) and individual observations (for the measured values), respectively."}
+```{r p-partial-dependence-res, fig.align='center', fig.height=10, fig.width=8.5, out.width="80%", fig.cap="Partial dependence plots for groups of variables included in the projected MIRS-based regression model for the EAC\\textsubscript{POM} (with Bayesian regularization and not derived spectra) computed with the complete data set (a) and the filtered data set (b, maximal potential contribution of iron to the EAC and EDC $\\le\\SI{100}{\\micro\\mol\\per\\gram\\carbon}$). This is the model interpreted in the main text. Each panel contains the plots for one OM group (labile, lipids, aromatics, carbonyl), and each panel's subplots the respective variables indicated by their wavenumber values (for example MIR variables assigned to labile OM fractions are those at 3660 and \\SI{3670}{\\wn}). The partial dependence plots were created by predicting EAC\\textsubscript{POM} values with the projected models for the input data, where all variables except those in the respective OM groups were set to their average value. Black points represent these predictions. Grey points represent the respective measured EAC\\textsubscript{POM}. Error bars represent the 95\\%-posterior intervals for the average (predicted values) and individual observations (for the measured values), respectively."}
 ### Partial dependence plots for key selected variables
 
 ## unfiltered data
@@ -1457,7 +1457,7 @@ cowplot::plot_grid(
                     cowplot::plot_grid(NULL, p2[[4]], NULL, ncol = 3, rel_widths = c(0.25, 0.5, 0.25))), 
     ncol = 1) 
 
-cowplot::plot_grid(plotlist = list(p1, p2), ncol = 2, labels = LETTERS[1:2])
+cowplot::plot_grid(plotlist = list(p1, p2), ncol = 2, labels = letters[1:2])
 ```
 
 \clearpage

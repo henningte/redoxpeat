@@ -9,27 +9,27 @@ A data frame with 59 rows and 22 variables:
 \describe{
   \item{id_90}{An integer representing the sample IDs used in the
   manuscript's computations.}
-  \item{Na}{The sample Na content [µg/g].}
-  \item{Mg}{The sample Mg content [µg/g].}
-  \item{Al}{The sample Al content [µg/g].}
-  \item{Si}{The sample Si content [µg/g].}
-  \item{P}{The sample P content [µg/g].}
-  \item{S}{The sample S content [µg/g].}
-  \item{Cl}{The sample Cl content [µg/g].}
+  \item{Na}{The sample Na content [\eqn{\mu}g/g].}
+  \item{Mg}{The sample Mg content [\eqn{\mu}g/g].}
+  \item{Al}{The sample Al content [\eqn{\mu}g/g].}
+  \item{Si}{The sample Si content [\eqn{\mu}g/g].}
+  \item{P}{The sample P content [\eqn{\mu}g/g].}
+  \item{S}{The sample S content [\eqn{\mu}g/g].}
+  \item{Cl}{The sample Cl content [\eqn{\mu}g/g].}
   \item{K}{The sample K content [g/g].}
   \item{Ca}{The sample Ca content [g/g].}
-  \item{Ti}{The sample Ti content [µg/g].}
-  \item{Cr}{The sample Cr content [µg/g].}
-  \item{Mn}{The sample Mn content [µg/g].}
+  \item{Ti}{The sample Ti content [\eqn{\mu}g/g].}
+  \item{Cr}{The sample Cr content [\eqn{\mu}g/g].}
+  \item{Mn}{The sample Mn content [\eqn{\mu}g/g].}
   \item{Fe}{The sample Fe content [g/g].}
-  \item{Cu}{The sample Cu content [µg/g].}
-  \item{Zn}{The sample Zn content [µg/g].}
-  \item{As}{The sample As content [µg/g].}
-  \item{Br}{The sample Br content [µg/g].}
-  \item{Rb}{The sample Rb content [µg/g].}
-  \item{Sr}{The sample Sr content [µg/g].}
-  \item{Ba}{The sample Ba content [µg/g].}
-  \item{Pb}{The sample Pb content [µg/g].}
+  \item{Cu}{The sample Cu content [\eqn{\mu}g/g].}
+  \item{Zn}{The sample Zn content [\eqn{\mu}g/g].}
+  \item{As}{The sample As content [\eqn{\mu}g/g].}
+  \item{Br}{The sample Br content [\eqn{\mu}g/g].}
+  \item{Rb}{The sample Rb content [\eqn{\mu}g/g].}
+  \item{Sr}{The sample Sr content [\eqn{\mu}g/g].}
+  \item{Ba}{The sample Ba content [\eqn{\mu}g/g].}
+  \item{Pb}{The sample Pb content [\eqn{\mu}g/g].}
 }
 }
 \usage{

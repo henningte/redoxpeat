@@ -11,7 +11,7 @@ A data frame with 472 rows and 11 variables:
   manuscript's computations.}
   \item{site_label}{A character vector with site labels for sites
   where the peat samples were taken.}
-  \item{site_label}{A character vector with site names for sites
+  \item{site_name}{A character vector with site names for sites
   where the peat samples were taken.}
   \item{depth_upper}{A numeric vector with the depth of the upper boundary
   of the peat layers from which the samples were taken [cm].}
@@ -19,12 +19,12 @@ A data frame with 472 rows and 11 variables:
   measurements, nested within id_90.}
   \item{mass}{The mass of the sample in the suspension [g].}
   \item{C}{The sample C content [g/g].}
-  \item{eac}{The measured electron accepting capacity (EAC) [µmol].}
+  \item{eac}{The measured electron accepting capacity (EAC) [\eqn{\mu}mol].}
   \item{eac_c}{The EAC normalized to the sample's C content
-  [µmol C\eqn{_\text{C}^{-1}}].}
-  \item{edc}{The measured electron donating capacity (EDC) [µmol].}
+  [\eqn{\mu}mol C\eqn{_\text{C}^{-1}}].}
+  \item{edc}{The measured electron donating capacity (EDC) [\eqn{\mu}mol].}
   \item{edc_c}{The EDC normalized to the sample's C content
-  [µmol C\eqn{_\text{C}^{-1}}].}
+  [\eqn{\mu}mol C\eqn{_\text{C}^{-1}}].}
 }
 }
 \usage{

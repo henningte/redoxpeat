@@ -1,0 +1,60 @@
+"id_90","site_label","site_name","site_order","depth_upper","depth_lower","id_ftir","id_integrate2"
+1,"BB","Beerberg",1,23,28,"X1",1
+2,"BB","Beerberg",1,48,53,"X2",2
+3,"BB","Beerberg",1,73,78,"X3",3
+5,"BB","Beerberg",1,290,295,"X5",5
+6,"PBR","P. Brunswick",12,10,20,"X6",6
+7,"PBR","P. Brunswick",12,30,40,"X7",7
+8,"PBR","P. Brunswick",12,60,70,"X8",8
+9,"PBR","P. Brunswick",12,140,150,"X9",9
+10,"SKY II","Skyring II",15,10,20,"X10",10
+11,"SKY II","Skyring II",15,30,40,"X11",11
+12,"SKY II","Skyring II",15,60,70,"X12",12
+13,"SKY II","Skyring II",15,260,270,"X13",13
+14,"LB","Lutose Bog",9,10,20,"X14",14
+15,"LB","Lutose Bog",9,30,40,"X15",15
+17,"LB","Lutose Bog",9,60,70,"X17",17
+19,"LB","Lutose Bog",9,190,200,"X19",19
+24,"MB","Mer Bleue",11,10,20,"X20",24
+25,"MB","Mer Bleue",11,30,40,"X21",25
+26,"MB","Mer Bleue",11,60,70,"X22",26
+27,"MB","Mer Bleue",11,190,200,"X23",27
+33,"DE","Degerö",4,10,20,"X32",33
+35,"DE","Degerö",4,30,40,"X33",35
+37,"DE","Degerö",4,60,70,"X34",37
+39,"DE","Degerö",4,190,200,"X25",39
+40,"LP","Lutose Plateau",10,10,20,"X40",40
+41,"LP","Lutose Plateau",10,30,40,"X41",41
+42,"LP","Lutose Plateau",10,60,70,"X42",42
+43,"MK","Martinskapelle",2,10,20,"X43",43
+44,"MK","Martinskapelle",2,30,40,"X44",44
+45,"MK","Martinskapelle",2,60,70,"X45",45
+46,"MK","Martinskapelle",2,190,200,"X46",46
+47,"LT","La Tenine",3,10,20,"X47",47
+48,"LT","La Tenine",3,30,40,"X48",48
+49,"LT","La Tenine",3,60,70,"X49",49
+50,"LT","La Tenine",3,190,200,"X50",50
+51,"SKY I-1","Skyring I-1",13,10,20,"SkyI_T1_10-20",51
+52,"SKY I-1","Skyring I-1",13,30,40,"eb1030_T1_30_40",52
+53,"SKY I-1","Skyring I-1",13,60,70,"eb1030_T1_60_70",53
+54,"SKY I-1","Skyring I-1",13,170,180,"SkyI_T1_170-180",54
+55,"SKY I-6","Skyring I-6",14,10,20,"SkyI_6T_10-20",55
+56,"SKY I-6","Skyring I-6",14,30,40,"SkyI_6T_30-40",56
+57,"SKY I-6","Skyring I-6",14,60,70,"SkyI_6T_60-70",57
+58,"SKY I-6","Skyring I-6",14,260,270,"SkyI_6T_260-270",58
+60,"TX","Touxi",7,12,17,"TX_12-17",60
+63,"TX","Touxi",7,32,37,"TX_32-37",63
+66,"TX","Touxi",7,65,70,"TX_65-70",66
+68,"TX","Touxi",7,235,240,"TX_235-240",68
+69,"DT","Dongtu",8,20,25,"DT2_2013_20-25",69
+70,"DT","Dongtu",8,40,45,"DT2_2013_40-45",70
+72,"DT","Dongtu",8,65,70,"DT2_2013_65-70",72
+73,"DT","Dongtu",8,170,175,"DT2_04.03.2014_170-175",73
+75,"ISH","Ishimbaevskoye",5,10,20,"T1.1_10_20",75
+76,"ISH","Ishimbaevskoye",5,30,40,"T1.1_30_40",76
+77,"ISH","Ishimbaevskoye",5,60,70,"T1.1_60_70",77
+78,"ISH","Ishimbaevskoye",5,200,210,"T1.1_200_210",78
+81,"KR","Kyzyltun Ryam",6,10,20,"148_460-463",81
+83,"KR","Kyzyltun Ryam",6,30,40,"142_439-442",83
+86,"KR","Kyzyltun Ryam",6,60,70,"133_412-415",86
+90,"KR","Kyzyltun Ryam",6,310,320,"49_159-162",90

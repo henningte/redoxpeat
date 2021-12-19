@@ -13,27 +13,27 @@ knitr::opts_chunk$set(
 )
 ```
 
-[![Last-changedate](https://img.shields.io/badge/last%20change-`r gsub('-', '--', Sys.Date())`-brightgreen.svg)](todo) [![minimal R version](https://img.shields.io/badge/R%3E%3D-4.0.1-6666ff.svg)](https://cran.r-project.org/) [![ORCiD](https://img.shields.io/badge/ORCiD-0000--0002--3993--1182-green.svg)](http://orcid.org/0000-0002-3993-1182)
+![Last-changedate](https://img.shields.io/badge/last%20change-`r gsub('-', '--', Sys.Date())`-brightgreen.svg) [![minimal R version](https://img.shields.io/badge/R%3E%3D-4.0.1-6666ff.svg)](https://cran.r-project.org/) [![ORCiD](https://img.shields.io/badge/ORCiD-0000--0002--3993--1182-green.svg)](http://orcid.org/0000-0002-3993-1182)
 
 # redoxpeat
 
 ### Compendium URL
 
----todo: add url
+<https://github.com/henningte/redoxpeat> or <https://doi.org/10.5281/zenodo.5792970>
 
-### Author
+### Authors
 
-Henning Teickner (henning.teickner@uni-muenster.de)
+Henning Teickner (henning.teickner@uni-muenster.de), Chuanyu Gao, Klaus-Holger Knorr
 
 ### Contents
 
 This repository contains the data and code for our paper:
 
-> Henning Teickner, Chuanyu Gao, Klaus-Holger Knorr (2021). _Electrochemical Properties of Peat Particulate Organic Matter on a Global Scale: Relation to Peat Chemistry and Degree of Decomposition_. Global Biochemical Cycles <https://doi.org/xxx/xxx>
+> Henning Teickner, Chuanyu Gao, Klaus-Holger Knorr (submitted). _Electrochemical Properties of Peat Particulate Organic Matter on a Global Scale: Relation to Peat Chemistry and Degree of Decomposition_. Submitted to Global Biochemical Cycles.
 
 ### How to download or install
 
-You can download the compendium as a zip from from this URL: </archive/master.zip> [---todo: add url]
+You can download the compendium as a zip from from this URL: <https://doi.org/10.5281/zenodo.5792970>
 
 Or you can install this compendium as an R package, redoxpeat, from GitHub with:
 
@@ -84,7 +84,7 @@ library(redoxpeat)
 
 #### Access to models for predicting the EAC/EDC from mid infrared spectra  
 
-Functions to get predictions from the fitted models to predict the EAC/EDC from id infrared spectra are available via the R package [irpeat](https://github.com/henningte/irpeat/).  
+Functions to get predictions from the fitted models to predict the EAC/EDC from id infrared spectra are available via the R package [irpeat](https://github.com/henningte/irpeat/) [@Teickner.2021].  
 
 #### Detailed overview on the files contained in the compendium
 
@@ -112,25 +112,26 @@ Functions to get predictions from the fitted models to predict the EAC/EDC from 
             - `004-regression-mirs.Rmd`: Child Rmarkdown file of `001-paper-main.Rmd` to compute the mid infrared spectra-based regression models to predict the EAC~POM~ and EDC~POM~.
             - `005-paper-abstract-graphical.Rmd`: Rmarkdown document used to create parts of the figures for the graphical abstract.
             - `006-paper-supplementary.Rmd`: Rmarkdown file to be run from within `001-paper-main.Rmd`. This script contains code and text for the supporting information.
-            - `007-latex.Rmd`: Rmarkdown file to be run after `001-paper-main.Rmd` to generate the full reference lists in the rendered pdf file and clean up `006-paper-supplementary.text`.
+            - `007-latex.Rmd`: Rmarkdown file to be run after `001-paper-main.Rmd` to generate the full reference lists in the rendered pdf file and clean up `006-paper-supplementary.tex`.
             - `references.bib`: Literature references for the manuscript.
+            - `references_or.bib`: Original Literature references for the manuscript. `references.bib` is created from `references_or.bib` by `007-latex.Rmd`.
             - `agujournal2018.cls`: The Agu Journal class derived from the rticles package.
             - `trackchanges.sty`: The trackchanges TeX package needed to run the LaTeX template from rticles.
             - `si.aux`: Auxiliary file containing the definitions for the supplementary references in `001-paper-main.tex`. This file is generated from `007-latex.Rmd`.
             - `001-paper-main.tex`/`001-paper-main.pdf`: The LaTeX/PDF document resulting from rendering `001-paper-main.Rmd`.
-            - `006-paper-supplementary.text`/`006-paper-supplementary.pdf`: The LaTeX/PDF document resulting from rendering `006-paper-supplementary.Rmd`.
+            - `006-paper-supplementary.tex`/`006-paper-supplementary.pdf`: The LaTeX/PDF document resulting from rendering `006-paper-supplementary.Rmd`.
 
 ### Acknowledgements
 
 For their support during sample collection/provision, we would like to thank Svenja Agethen (DE), Werner Borken (SKY I-1, SKY I-6), Tanja Broder (PBR, SKY II, LT, MK), Mariusz Gałka (LT, MK), Liam Heffernan (LP, LB), Norbert Hölzel (KR, ISH), Annkathrain Hömberg (TX, DT), Tim Moore (MB), Sindy Wagner (BB), Tim-Martin Wertebach (KR, ISH), and Zhi-Guo Yu (TX, DT).  
-Analyses of this study were carried out in the laboratory of the Institute of Landscape Ecology. Svenja Agethen and Michael Sander provided analytical support. The assistance of  Ulrike Berning-Mader, Madeleine Supper, Victoria Ratachin, and numerous student assistants is greatly acknowledged. We thank Dr. Hendrik Wetzel, Fraunhofer Institute for Applied Polymer Research, Dept. Starch Modification/Molecular Properties, Potsdam, Germany, for analysis of O and H. The workflow was reproduced by the Reproducible Research Support Service of the University of Münster.  
+Analyses of this study were carried out in the laboratory of the Institute of Landscape Ecology. Svenja Agethen and Michael Sander provided analytical support. The assistance of  Ulrike Berning-Mader, Madeleine Supper, Victoria Ratachin, and numerous student assistants is greatly acknowledged. We thank Dr. Hendrik Wetzel, Fraunhofer Institute for Applied Polymer Research, Dept. Starch Modification/Molecular Properties, Potsdam, Germany, for analysis of O and H. The workflow was reproduced by the Reproducible Research Support Service of the University of Münster. We thank two anonymous reviewers whose comments helped to improve the manuscript.    
 This Study was funded by the Deutsche Forschungsgemeinschaft (DFG, German Research Foundation) grant no. KN 929/12-1 to Klaus-Holger Knorr; Chuanyu Gao was supported by the Youth Innovation Promotion Association CAS (No. 2020235).
 
 ### How to cite
 
 Please cite this compendium as:
 
-> Henning Teickner, Chuanyu Gao, Klaus-Holger Knorr, (`r format(Sys.Date(), "%Y")`). _Compendium of R code and data for 'Electrochemical Properties of Peat Particulate Organic Matter on a Global Scale: Relation to Peat Chemistry and Degree of Decomposition'_. Accessed `r format(Sys.Date(), "%d %b %Y")`. Online at <https://doi.org/xxx/xxx>
+> Henning Teickner, Chuanyu Gao, Klaus-Holger Knorr, (`r format(Sys.Date(), "%Y")`). _Reproducible research compendium with R code and data for: 'Electrochemical Properties of Peat Particulate Organic Matter on a Global Scale: Relation to Peat Chemistry and Degree of Decomposition'_. Accessed `r format(Sys.Date(), "%d %b %Y")`. Online at <https://doi.org/10.5281/zenodo.5792970>
 
 ### Licenses
 

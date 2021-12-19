@@ -10,9 +10,10 @@ A data frame with 59 rows and 6 variables:
   \item{id_90}{An integer representing the sample IDs used in the
   manuscript's computations.}
   \item{mass}{The mass of the sample in the suspension [g].}
-  \item{fe2}{The concentration of Fe\eqn{^{2+}} in the samples [µmol/g].}
-  \item{fe3}{The concentration of Fe\eqn{^{3+}} in the samples [µmol/g].}
-  \item{fe_tot}{fe2 + fe3 [µmol/g].}
+  \item{water}{The volume of water in the suspension [mL].}
+  \item{fe2}{The concentration of Fe\eqn{^{2+}} in the samples [\eqn{\mu}mol/g].}
+  \item{fe3}{The concentration of Fe\eqn{^{3+}} in the samples [\eqn{\mu}mol/g].}
+  \item{fe_tot}{fe2 + fe3 [\eqn{\mu}mol/g].}
 }
 }
 \usage{

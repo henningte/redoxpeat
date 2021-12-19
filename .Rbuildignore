@@ -7,8 +7,12 @@
 ^\.github$
 ^README\.Rmd$
 ^LICENSE\.md$
+^CONDUCT\.md$
+^CONTRIBUTING\.md$
 ^data-raw$
 ^analysis$
 ^\.git$
 ^\.gitignore$
+^\.dockerignore$
+^README\.md$
 

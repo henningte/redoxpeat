@@ -18,11 +18,11 @@ to compute a confidence interval limit.}
 confidence intervals to compute.}
 }
 \value{
-The lower (\code{get_ci_lower}) or upper (\code{get_ci_upper}) limit of the
+The lower (\code{get_lower_ci}) or upper (\code{get_upper_ci}) limit of the
 confidence interval (two-sided) for \code{x}.
 }
 \description{
-\code{get_ci_lower} and \code{get_ci_upper} compute the lower and upper confidence
+\code{get_lower_ci} and \code{get_upper_ci} compute the lower and upper confidence
 limits (two-sided) for samples from a distribution.
 }
 \examples{
@@ -30,7 +30,7 @@ limits (two-sided) for samples from a distribution.
 x <- rnorm(100, 5, 2)
 
 # get the lower 95\% confidence limit
-x_lwr <- get_ci_lower(x, prob = 0.95)
-x_upr <- get_ci_upper(x, prob = 0.95)
+x_lwr <- get_lower_ci(x, prob = 0.95)
+x_upr <- get_upper_ci(x, prob = 0.95)
 
 }

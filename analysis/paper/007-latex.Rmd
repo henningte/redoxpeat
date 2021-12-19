@@ -1,5 +1,5 @@
 ---
-title: "Untitled"
+title: "Compile tex Files"
 output: html_document
 ---
 
@@ -16,9 +16,10 @@ library(tinytex)
 ```
 
 
-```{r}
+```{r clean-bibtex}
 # clean the bib file
 # get bibkeys
+file.copy(from = "references_or.bib", to = "references.bib", overwrite = TRUE)
 bibkeys <- bib2df::bib2df("references.bib")
 
 # get texts to search for bibkey
@@ -48,21 +49,23 @@ bibkeys %>%
 ```
 
 
-```{r}
+```{r render-bib-main}
 # fully compile literature references in main document
 tinytex::latexmk(file = "001-paper-main.tex", clean = FALSE)
 system("bibtex si.aux")
 tinytex::latexmk(file = "001-paper-main.tex", clean = FALSE)
 ```
 
-```{r}
+```{r clean-supplementary}
 # remove unnecessary parts in supplementary information
 si <- readLines("006-paper-supplementary.tex")
 
 index_keypoints <- stringr::str_detect(si, "^\\\\begin\\{keypoints\\}")
 index_absract <- stringr::str_detect(si, "^\\\\begin\\{abstract\\}")
 
-si <- si[-c(which(index_keypoints) + 0:2, which(index_absract) + 0:2)]
+if(any(index_keypoints)) {
+  si <- si[-c(which(index_keypoints) + 0:2, which(index_absract) + 0:2)]  
+}
 
 writeLines(si, "006-paper-supplementary.tex")
 

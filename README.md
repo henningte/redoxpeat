@@ -1,7 +1,7 @@
 
 <!-- README.md is generated from README.Rmd. Please edit that file -->
 
-[![Last-changedate](https://img.shields.io/badge/last%20change-2021--08--05-brightgreen.svg)](todo)
+![Last-changedate](https://img.shields.io/badge/last%20change-2021--12--20-brightgreen.svg)
 [![minimal R
 version](https://img.shields.io/badge/R%3E%3D-4.0.1-6666ff.svg)](https://cran.r-project.org/)
 [![ORCiD](https://img.shields.io/badge/ORCiD-0000--0002--3993--1182-green.svg)](http://orcid.org/0000-0002-3993-1182)
@@ -10,30 +10,27 @@ version](https://img.shields.io/badge/R%3E%3D-4.0.1-6666ff.svg)](https://cran.r-
 
 ### Compendium URL
 
-—todo: add url
+<https://github.com/henningte/redoxpeat> or
+<https://doi.org/10.5281/zenodo.5792970>
 
-### Author
+### Authors
 
-Henning Teickner (<henning.teickner@uni-muenster.de>)
+Henning Teickner (<henning.teickner@uni-muenster.de>), Chuanyu Gao,
+Klaus-Holger Knorr
 
 ### Contents
 
 This repository contains the data and code for our paper:
 
-> Henning Teickner, Chuanyu Gao, Klaus-Holger Knorr (2021).
+> Henning Teickner, Chuanyu Gao, Klaus-Holger Knorr (submitted).
 > *Electrochemical Properties of Peat Particulate Organic Matter on a
 > Global Scale: Relation to Peat Chemistry and Degree of Decomposition*.
-> Name of journal/book <https://doi.org/xxx/xxx>
-
-Our pre-print is online here:
-
-> Authors, (YYYY). *Title of paper*. Name of journal/book, Accessed 05
-> Aug 2021. Online at <https://doi.org/xxx/xxx>
+> Submitted to Global Biochemical Cycles.
 
 ### How to download or install
 
 You can download the compendium as a zip from from this URL:
-</archive/master.zip> \[—todo: add url\]
+<https://doi.org/10.5281/zenodo.5792970>
 
 Or you can install this compendium as an R package, redoxpeat, from
 GitHub with:
@@ -66,7 +63,7 @@ container. It occupies disk space of \~7 Gb.
 
 When the Docker image runs in a container, go to `localhost:8787` in
 your Browser. You will find an RStudio interface where you can log in
-with username `rstudio` and password `rstudio`. Here you can find the
+with username `rstudio` and password `redoxpeat`. Here you can find the
 Rmarkdown scripts (`redoxpeat/analysis/paper/001-paper-main.rmd` and
 `analysis/paper/007-latex.Rmd`) as described above.
 
@@ -106,7 +103,8 @@ library(redoxpeat)
 
 Functions to get predictions from the fitted models to predict the
 EAC/EDC from id infrared spectra are available via the R package
-[irpeat](https://github.com/henningte/irpeat/).
+[irpeat](https://github.com/henningte/irpeat/) (Teickner and Hodgkins
+2021).
 
 #### Detailed overview on the files contained in the compendium
 
@@ -164,9 +162,12 @@ EAC/EDC from id infrared spectra are available via the R package
               - `007-latex.Rmd`: Rmarkdown file to be run after
                 `001-paper-main.Rmd` to generate the full reference
                 lists in the rendered pdf file and clean up
-                `006-paper-supplementary.text`.
+                `006-paper-supplementary.tex`.
               - `references.bib`: Literature references for the
                 manuscript.
+              - `references_or.bib`: Original Literature references for
+                the manuscript. `references.bib` is created from
+                `references_or.bib` by `007-latex.Rmd`.
               - `agujournal2018.cls`: The Agu Journal class derived from
                 the rticles package.
               - `trackchanges.sty`: The trackchanges TeX package needed
@@ -176,7 +177,7 @@ EAC/EDC from id infrared spectra are available via the R package
                 This file is generated from `007-latex.Rmd`.
               - `001-paper-main.tex`/`001-paper-main.pdf`: The LaTeX/PDF
                 document resulting from rendering `001-paper-main.Rmd`.
-              - `006-paper-supplementary.text`/`006-paper-supplementary.pdf`:
+              - `006-paper-supplementary.tex`/`006-paper-supplementary.pdf`:
                 The LaTeX/PDF document resulting from rendering
                 `006-paper-supplementary.Rmd`.
 
@@ -196,7 +197,8 @@ greatly acknowledged. We thank Dr. Hendrik Wetzel, Fraunhofer Institute
 for Applied Polymer Research, Dept. Starch Modification/Molecular
 Properties, Potsdam, Germany, for analysis of O and H. The workflow was
 reproduced by the Reproducible Research Support Service of the
-University of Münster.  
+University of Münster. We thank two anonymous reviewers whose comments
+helped to improve the manuscript.  
 This Study was funded by the Deutsche Forschungsgemeinschaft (DFG,
 German Research Foundation) grant no. KN 929/12-1 to Klaus-Holger Knorr;
 Chuanyu Gao was supported by the Youth Innovation Promotion Association
@@ -206,20 +208,21 @@ CAS (No. 2020235).
 
 Please cite this compendium as:
 
-> Henning Teickner, Chuanyu Gao, Klaus-Holger Knorr, (2021). *Compendium
-> of R code and data for ‘Electrochemical Properties of Peat Particulate
-> Organic Matter on a Global Scale: Relation to Peat Chemistry and
-> Degree of Decomposition’*. Accessed 05 Aug 2021. Online at
-> <https://doi.org/xxx/xxx>
+> Henning Teickner, Chuanyu Gao, Klaus-Holger Knorr, (2021).
+> *Reproducible research compendium with R code and data for:
+> ‘Electrochemical Properties of Peat Particulate Organic Matter on a
+> Global Scale: Relation to Peat Chemistry and Degree of
+> Decomposition’*. Accessed 20 Dec 2021. Online at
+> <https://doi.org/10.5281/zenodo.5792970>
 
 ### Licenses
 
-**Text and figures :** [CC
+**Text and figures:** [CC
 BY 4.0](https://creativecommons.org/licenses/by/4.0/)
 
-**Code :** See the [DESCRIPTION](DESCRIPTION) file
+**Code:** See the [DESCRIPTION](DESCRIPTION) file
 
-**Data :** [CC-0](http://creativecommons.org/publicdomain/zero/1.0/)
+**Data:** [CC-0](http://creativecommons.org/publicdomain/zero/1.0/)
 attribution requested in reuse
 
 **LaTeX templates:** The LaTeX templates are derived from the rticles R
@@ -273,6 +276,14 @@ Rutai Gao, et al. 2017. “Increased Electron-Accepting and Decreased
 Electron-Donating Capacities of Soil Humic Substances in Response to
 Increasing Temperature.” *Environmental science & technology* 51 (6):
 3176–86. <https://doi.org/10.1021/acs.est.6b04131>.
+
+</div>
+
+<div id="ref-Teickner.2021">
+
+Teickner, Henning, and Suzanne B. Hodgkins. 2021. “Irpeat: Simple
+Functions to Analyze Mid Infrared Spectra of Peat Samples.” Zenodo.
+<https://doi.org/10.5281/ZENODO.5792919>.
 
 </div>
 

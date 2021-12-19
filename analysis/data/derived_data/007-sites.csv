@@ -1,0 +1,16 @@
+site_id,site_label,site_name,longitude,latitude,altitude,peatland_type,current_vegetation
+1,BB,Beerberg,10.74,50.66,981,Bog,"Sphagnum, shrubs"
+2,MK,Martinskapelle,8.15,46.1,1090,Bog,"Shrubs, Sphagnum"
+3,LT,La Tenine,6.93,48.04,871,Bog,"Sphagnum, shrubs"
+4,DE,Degerö,19.56,64.18,270,Fen,"Sphagnum, sedges, shrubs"
+5,ISH,Ishimbaevskoye,65.34,57.47,78,Fen,"Shrubs, Sphagnum"
+6,KR,Kyzyltun Ryam,69.62,56.26,110,Bog,Sphagnum
+7,TX,Touxi,127.84,42.28,1042,Fen,"Vascular plants, Sphagnum"
+8,DT,Dongtu,127.86,42.27,1262,Fen,"Vascular plants, Sphagnum"
+9,LB,Lutose Bog,-117.17,59.48,302,Bog,"Sphagnum, shrubs"
+10,LP,Lutose Plateau,-117.17,59.48,303,Bog,"Sphagnum, lichens"
+11,MB,Mer Bleue,-75.52,45.41,69,Bog,"Shrubs, Sphagnum"
+12,PBR,P. Brunswick,-70.97,-53.64,42,Bog,"Sphagnum, shrubs"
+13,SKY I-1,Skyring I-1,-72.45,-52.14,40,Bog,"Vascular plants (Astelia pumila), Sphagnum"
+14,SKY I-6,Skyring I-6,-72.45,-52.14,21,Bog,Sphagnum
+15,SKY II,Skyring II,-72.13,-52.51,163,Bog,Sphagnum

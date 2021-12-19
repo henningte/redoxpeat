@@ -47,27 +47,27 @@
 #' \describe{
 #'   \item{id_90}{An integer representing the sample IDs used in the
 #'   manuscript's computations.}
-#'   \item{Na}{The sample Na content [µg/g].}
-#'   \item{Mg}{The sample Mg content [µg/g].}
-#'   \item{Al}{The sample Al content [µg/g].}
-#'   \item{Si}{The sample Si content [µg/g].}
-#'   \item{P}{The sample P content [µg/g].}
-#'   \item{S}{The sample S content [µg/g].}
-#'   \item{Cl}{The sample Cl content [µg/g].}
+#'   \item{Na}{The sample Na content [\eqn{\mu}g/g].}
+#'   \item{Mg}{The sample Mg content [\eqn{\mu}g/g].}
+#'   \item{Al}{The sample Al content [\eqn{\mu}g/g].}
+#'   \item{Si}{The sample Si content [\eqn{\mu}g/g].}
+#'   \item{P}{The sample P content [\eqn{\mu}g/g].}
+#'   \item{S}{The sample S content [\eqn{\mu}g/g].}
+#'   \item{Cl}{The sample Cl content [\eqn{\mu}g/g].}
 #'   \item{K}{The sample K content [g/g].}
 #'   \item{Ca}{The sample Ca content [g/g].}
-#'   \item{Ti}{The sample Ti content [µg/g].}
-#'   \item{Cr}{The sample Cr content [µg/g].}
-#'   \item{Mn}{The sample Mn content [µg/g].}
+#'   \item{Ti}{The sample Ti content [\eqn{\mu}g/g].}
+#'   \item{Cr}{The sample Cr content [\eqn{\mu}g/g].}
+#'   \item{Mn}{The sample Mn content [\eqn{\mu}g/g].}
 #'   \item{Fe}{The sample Fe content [g/g].}
-#'   \item{Cu}{The sample Cu content [µg/g].}
-#'   \item{Zn}{The sample Zn content [µg/g].}
-#'   \item{As}{The sample As content [µg/g].}
-#'   \item{Br}{The sample Br content [µg/g].}
-#'   \item{Rb}{The sample Rb content [µg/g].}
-#'   \item{Sr}{The sample Sr content [µg/g].}
-#'   \item{Ba}{The sample Ba content [µg/g].}
-#'   \item{Pb}{The sample Pb content [µg/g].}
+#'   \item{Cu}{The sample Cu content [\eqn{\mu}g/g].}
+#'   \item{Zn}{The sample Zn content [\eqn{\mu}g/g].}
+#'   \item{As}{The sample As content [\eqn{\mu}g/g].}
+#'   \item{Br}{The sample Br content [\eqn{\mu}g/g].}
+#'   \item{Rb}{The sample Rb content [\eqn{\mu}g/g].}
+#'   \item{Sr}{The sample Sr content [\eqn{\mu}g/g].}
+#'   \item{Ba}{The sample Ba content [\eqn{\mu}g/g].}
+#'   \item{Pb}{The sample Pb content [\eqn{\mu}g/g].}
 #' }
 "d_xrf"
 
@@ -82,7 +82,7 @@
 #'   manuscript's computations.}
 #'   \item{site_label}{A character vector with site labels for sites
 #'   where the peat samples were taken.}
-#'   \item{site_label}{A character vector with site names for sites
+#'   \item{site_name}{A character vector with site names for sites
 #'   where the peat samples were taken.}
 #'   \item{depth_upper}{A numeric vector with the depth of the upper boundary
 #'   of the peat layers from which the samples were taken [cm].}
@@ -90,12 +90,12 @@
 #'   measurements, nested within id_90.}
 #'   \item{mass}{The mass of the sample in the suspension [g].}
 #'   \item{C}{The sample C content [g/g].}
-#'   \item{eac}{The measured electron accepting capacity (EAC) [µmol].}
+#'   \item{eac}{The measured electron accepting capacity (EAC) [\eqn{\mu}mol].}
 #'   \item{eac_c}{The EAC normalized to the sample's C content
-#'   [µmol C\eqn{_\text{C}^{-1}}].}
-#'   \item{edc}{The measured electron donating capacity (EDC) [µmol].}
+#'   [\eqn{\mu}mol C\eqn{_\text{C}^{-1}}].}
+#'   \item{edc}{The measured electron donating capacity (EDC) [\eqn{\mu}mol].}
 #'   \item{edc_c}{The EDC normalized to the sample's C content
-#'   [µmol C\eqn{_\text{C}^{-1}}].}
+#'   [\eqn{\mu}mol C\eqn{_\text{C}^{-1}}].}
 #' }
 "el_t0"
 
@@ -109,9 +109,10 @@
 #'   \item{id_90}{An integer representing the sample IDs used in the
 #'   manuscript's computations.}
 #'   \item{mass}{The mass of the sample in the suspension [g].}
-#'   \item{fe2}{The concentration of Fe\eqn{^{2+}} in the samples [µmol/g].}
-#'   \item{fe3}{The concentration of Fe\eqn{^{3+}} in the samples [µmol/g].}
-#'   \item{fe_tot}{fe2 + fe3 [µmol/g].}
+#'   \item{water}{The volume of water in the suspension [mL].}
+#'   \item{fe2}{The concentration of Fe\eqn{^{2+}} in the samples [\eqn{\mu}mol/g].}
+#'   \item{fe3}{The concentration of Fe\eqn{^{3+}} in the samples [\eqn{\mu}mol/g].}
+#'   \item{fe_tot}{fe2 + fe3 [\eqn{\mu}mol/g].}
 #' }
 "fe_t0"
 

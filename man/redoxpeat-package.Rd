@@ -4,9 +4,9 @@
 \name{redoxpeat-package}
 \alias{redoxpeat}
 \alias{redoxpeat-package}
-\title{redoxpeat: Research Compendium for the Manuscript "Electrochemical Properties of 
-    Peat Particulate Organic Matter on a Global Scale: Relation to Peat 
-    Chemistry and Degree of Decomposition".}
+\title{redoxpeat: Reproducible research compendium with R code and data for: 
+    'Electrochemical Properties of Peat Particulate Organic Matter on a Global 
+    Scale: Relation to Peat Chemistry and Degree of Decomposition'}
 \description{
 This package is the research compendium for the manuscript
     "Electrochemical Properties of Peat Particulate Organic Matter on a 
@@ -15,7 +15,13 @@ This package is the research compendium for the manuscript
     derive results and create figures shown in the manuscript.
 }
 \author{
-\strong{Maintainer}: Henning Teickner \email{h_teic01@uni-muenster.de}
+\strong{Maintainer}: Henning Teickner \email{henning.teickner@uni-muenster.de} (\href{https://orcid.org/0000-0002-3993-1182}{ORCID})
+
+Authors:
+\itemize{
+  \item Chuanyu Gao \email{gaochuanyu@iga.ac.cn}
+  \item Klaus-Holger Knorr \email{kh.knorrr@wwu.de}
+}
 
 }
 \keyword{internal}
