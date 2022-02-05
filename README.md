@@ -1,7 +1,7 @@
 
 <!-- README.md is generated from README.Rmd. Please edit that file -->
 
-![Last-changedate](https://img.shields.io/badge/last%20change-2021--12--20-brightgreen.svg)
+![Last-changedate](https://img.shields.io/badge/last%20change-2022--02--05-brightgreen.svg)
 [![minimal R
 version](https://img.shields.io/badge/R%3E%3D-4.0.1-6666ff.svg)](https://cran.r-project.org/)
 [![ORCiD](https://img.shields.io/badge/ORCiD-0000--0002--3993--1182-green.svg)](http://orcid.org/0000-0002-3993-1182)
@@ -20,12 +20,14 @@ Klaus-Holger Knorr
 
 ### Contents
 
-This repository contains the data and code for our paper:
+This repository contains the data and code for our paper (Teickner, Gao,
+and Knorr 2022):
 
-> Henning Teickner, Chuanyu Gao, Klaus-Holger Knorr (submitted).
+> Henning Teickner, Chuanyu Gao, Klaus-Holger Knorr (2022).
 > *Electrochemical Properties of Peat Particulate Organic Matter on a
 > Global Scale: Relation to Peat Chemistry and Degree of Decomposition*.
-> Submitted to Global Biochemical Cycles.
+> Global Biochemical Cycles. DOI:
+> [10.1029/2021GB007160](https://www.doi.org/10.1029/2021GB007160).
 
 ### How to download or install
 
@@ -208,11 +210,11 @@ CAS (No. 2020235).
 
 Please cite this compendium as:
 
-> Henning Teickner, Chuanyu Gao, Klaus-Holger Knorr, (2021).
+> Henning Teickner, Chuanyu Gao, Klaus-Holger Knorr, (2022).
 > *Reproducible research compendium with R code and data for:
 > ‘Electrochemical Properties of Peat Particulate Organic Matter on a
 > Global Scale: Relation to Peat Chemistry and Degree of
-> Decomposition’*. Accessed 20 Dec 2021. Online at
+> Decomposition’*. Accessed 05 Feb 2022. Online at
 > <https://doi.org/10.5281/zenodo.5792970>
 
 ### Licenses
@@ -276,6 +278,16 @@ Rutai Gao, et al. 2017. “Increased Electron-Accepting and Decreased
 Electron-Donating Capacities of Soil Humic Substances in Response to
 Increasing Temperature.” *Environmental science & technology* 51 (6):
 3176–86. <https://doi.org/10.1021/acs.est.6b04131>.
+
+</div>
+
+<div id="ref-Teickner.2022">
+
+Teickner, Henning, Chuanyu Gao, and Klaus-Holger Knorr. 2022.
+“Electrochemical Properties of Peat Particulate Organic Matter on a
+Global Scale: Relation to Peat Chemistry and Degree of Decomposition.”
+*Global Biogeochemical Cycles*, February.
+<https://doi.org/10.1029/2021GB007160>.
 
 </div>
 

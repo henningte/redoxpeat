@@ -27,9 +27,9 @@ Henning Teickner (henning.teickner@uni-muenster.de), Chuanyu Gao, Klaus-Holger K
 
 ### Contents
 
-This repository contains the data and code for our paper:
+This repository contains the data and code for our paper [@Teickner.2022]:
 
-> Henning Teickner, Chuanyu Gao, Klaus-Holger Knorr (submitted). _Electrochemical Properties of Peat Particulate Organic Matter on a Global Scale: Relation to Peat Chemistry and Degree of Decomposition_. Submitted to Global Biochemical Cycles.
+> Henning Teickner, Chuanyu Gao, Klaus-Holger Knorr (2022). _Electrochemical Properties of Peat Particulate Organic Matter on a Global Scale: Relation to Peat Chemistry and Degree of Decomposition_. Global Biochemical Cycles. DOI: [10.1029/2021GB007160](https://www.doi.org/10.1029/2021GB007160).
 
 ### How to download or install
 
